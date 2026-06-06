@@ -1,0 +1,27 @@
+FROM maven:3.8.6-jdk-8-slim AS builder
+
+WORKDIR /app
+
+COPY pom.xml .
+COPY doc-engine-server/pom.xml ./doc-engine-server/
+
+RUN mvn dependency:go-offline -B
+
+COPY doc-engine-server/src ./doc-engine-server/src
+
+RUN mvn clean package -DskipTests -pl doc-engine-server -am
+
+FROM openjdk:8-jre-slim
+
+WORKDIR /app
+
+ENV TZ=Asia/Shanghai
+RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+COPY --from=builder /app/doc-engine-server/target/doc-engine-server.jar /app/app.jar
+
+RUN mkdir -p /app/logs
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar", "--spring.profiles.active=${SPRING_PROFILES_ACTIVE:prod}"]
