@@ -31,6 +31,10 @@ public class DocTemplateVO implements Serializable {
     private String permissionRoles;
     private String permissionUsers;
     private String permissionDepts;
+    private String templateFilePath;
+    private String templateFileName;
+    private String templateVariables;
+    private Long headerId;
     private String remark;
     private String createBy;
     private LocalDateTime createTime;

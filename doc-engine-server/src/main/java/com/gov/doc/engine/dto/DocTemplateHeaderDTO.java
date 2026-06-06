@@ -13,9 +13,10 @@ public class DocTemplateHeaderDTO implements Serializable {
 
     private Long id;
 
-    private Long templateId;
-
     private String headerType;
+
+    @NotBlank(message = "红头配置名称不能为空")
+    private String headerName;
 
     @NotBlank(message = "发文单位名称不能为空")
     private String unitName;

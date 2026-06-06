@@ -30,19 +30,23 @@ export interface DocTemplateVO {
   permissionRoles: string
   permissionUsers: string
   permissionDepts: string
+  templateFilePath: string
+  templateFileName: string
+  templateVariables: string
+  headerId: number
   remark: string
   createBy: string
   createTime: string
   updateBy: string
   updateTime: string
-  header: DocTemplateHeaderDTO
+  header?: DocTemplateHeaderDTO
   fields: DocTemplateFieldDTO[]
 }
 
 export interface DocTemplateHeaderDTO {
   id?: number
-  templateId?: number
   headerType?: string
+  headerName: string
   unitName: string
   unitNameFont?: string
   unitNameFontSize: number
@@ -125,8 +129,11 @@ export interface DocTemplateSaveDTO {
   permissionRoles?: string
   permissionUsers?: string
   permissionDepts?: string
+  templateFilePath?: string
+  templateFileName?: string
+  templateVariables?: string
+  headerId?: number
   remark?: string
-  header: DocTemplateHeaderDTO
   fields?: DocTemplateFieldDTO[]
 }
 

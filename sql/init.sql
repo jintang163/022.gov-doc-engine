@@ -30,6 +30,10 @@ CREATE TABLE `doc_template` (
     `permission_roles` VARCHAR(512) COMMENT '可用角色ID列表，逗号分隔',
     `permission_users` VARCHAR(512) COMMENT '可用用户ID列表，逗号分隔',
     `permission_depts` VARCHAR(512) COMMENT '可用部门ID列表，逗号分隔',
+    `template_file_path` VARCHAR(256) COMMENT 'Word模板文件路径',
+    `template_file_name` VARCHAR(256) COMMENT 'Word模板文件名',
+    `template_variables` TEXT COMMENT '模板变量JSON数组',
+    `header_id` BIGINT COMMENT '红头配置ID',
     `remark` VARCHAR(256) COMMENT '备注',
     `create_by` VARCHAR(64) COMMENT '创建人',
     `create_time` DATETIME COMMENT '创建时间',
@@ -49,8 +53,8 @@ CREATE TABLE `doc_template` (
 DROP TABLE IF EXISTS `doc_template_header`;
 CREATE TABLE `doc_template_header` (
     `id` BIGINT NOT NULL COMMENT '主键ID',
-    `template_id` BIGINT NOT NULL COMMENT '模板ID',
     `header_type` VARCHAR(32) NOT NULL DEFAULT 'standard' COMMENT '红头类型：standard标准/custom自定义',
+    `header_name` VARCHAR(128) NOT NULL COMMENT '红头配置名称',
     `unit_name` VARCHAR(128) NOT NULL COMMENT '发文单位名称',
     `unit_name_font` VARCHAR(32) NOT NULL DEFAULT '宋体' COMMENT '单位名称字体',
     `unit_name_font_size` INT NOT NULL DEFAULT 54 COMMENT '单位名称字号（px）',
@@ -91,7 +95,7 @@ CREATE TABLE `doc_template_header` (
     `update_time` DATETIME COMMENT '更新时间',
     `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否1是',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_template_id` (`template_id`),
+    UNIQUE KEY `uk_header_name` (`header_name`),
     KEY `idx_header_type` (`header_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公文红头样式表';
 
@@ -182,41 +186,45 @@ CREATE TABLE `doc_document` (
 -- 初始化数据 - 预置公文模板
 -- =============================================
 
--- 插入下行文通知模板
-INSERT INTO `doc_template` (`id`, `template_code`, `template_name`, `template_type`, `template_category`, `version`, `is_current_version`, `status`, `description`, `unit_name`)
-VALUES (1001, 'TPL_DOWN_NOTICE_001', '下行文-通知模板', '下行文', '通知', 1, 1, 1, '适用于向下级机关发布指示、布置工作、传达有关事项等', 'XX省人民政府办公厅');
-
--- 插入上行文请示模板
-INSERT INTO `doc_template` (`id`, `template_code`, `template_name`, `template_type`, `template_category`, `version`, `is_current_version`, `status`, `description`, `unit_name`)
-VALUES (1002, 'TPL_UP_REQUEST_001', '上行文-请示模板', '上行文', '请示', 1, 1, 1, '适用于向上级机关请求指示、批准事项', 'XX省人民政府办公厅');
-
--- 插入上行文报告模板
-INSERT INTO `doc_template` (`id`, `template_code`, `template_name`, `template_type`, `template_category`, `version`, `is_current_version`, `status`, `description`, `unit_name`)
-VALUES (1003, 'TPL_UP_REPORT_001', '上行文-报告模板', '上行文', '报告', 1, 1, 1, '适用于向上级机关汇报工作、反映情况、答复询问', 'XX省人民政府办公厅');
-
--- 插入平行文函模板
-INSERT INTO `doc_template` (`id`, `template_code`, `template_name`, `template_type`, `template_category`, `version`, `is_current_version`, `status`, `description`, `unit_name`)
-VALUES (1004, 'TPL_PARALLEL_LETTER_001', '平行文-函模板', '平行文', '函', 1, 1, 1, '适用于不相隶属机关之间商洽工作、询问和答复问题', 'XX省人民政府办公厅');
-
 -- =============================================
 -- 初始化红头样式数据
 -- =============================================
 
--- 下行文通知红头样式
-INSERT INTO `doc_template_header` (`id`, `template_id`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
-VALUES (2001, 1001, 'XX省人民政府办公厅', 54, '#C60000', 'XX政办发', '〔2024〕');
+-- 省政府办公厅标准红头
+INSERT INTO `doc_template_header` (`id`, `header_name`, `header_type`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
+VALUES (2001, '省政府办公厅-下行文红头', 'standard', 'XX省人民政府办公厅', 54, '#C60000', 'XX政办发', '〔2024〕');
 
--- 上行文请示红头样式
-INSERT INTO `doc_template_header` (`id`, `template_id`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
-VALUES (2002, 1002, 'XX省人民政府办公厅', 54, '#C60000', 'XX政办请', '〔2024〕');
+INSERT INTO `doc_template_header` (`id`, `header_name`, `header_type`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
+VALUES (2002, '省政府办公厅-上行文请示红头', 'standard', 'XX省人民政府办公厅', 54, '#C60000', 'XX政办请', '〔2024〕');
 
--- 上行文报告红头样式
-INSERT INTO `doc_template_header` (`id`, `template_id`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
-VALUES (2003, 1003, 'XX省人民政府办公厅', 54, '#C60000', 'XX政办报', '〔2024〕');
+INSERT INTO `doc_template_header` (`id`, `header_name`, `header_type`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
+VALUES (2003, '省政府办公厅-上行文报告红头', 'standard', 'XX省人民政府办公厅', 54, '#C60000', 'XX政办报', '〔2024〕');
 
--- 平行文函红头样式
-INSERT INTO `doc_template_header` (`id`, `template_id`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
-VALUES (2004, 1004, 'XX省人民政府办公厅', 54, '#C60000', 'XX政办函', '〔2024〕');
+INSERT INTO `doc_template_header` (`id`, `header_name`, `header_type`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
+VALUES (2004, '省政府办公厅-平行文函红头', 'standard', 'XX省人民政府办公厅', 54, '#C60000', 'XX政办函', '〔2024〕');
+
+INSERT INTO `doc_template_header` (`id`, `header_name`, `header_type`, `unit_name`, `unit_name_font_size`, `unit_name_font_color`, `document_number_prefix`, `document_number_year`)
+VALUES (2005, '省政府通用红头', 'standard', 'XX省人民政府', 54, '#C60000', 'XX政发', '〔2024〕');
+
+-- =============================================
+-- 初始化公文模板数据
+-- =============================================
+
+-- 插入下行文通知模板
+INSERT INTO `doc_template` (`id`, `template_code`, `template_name`, `template_type`, `template_category`, `version`, `is_current_version`, `status`, `description`, `unit_name`, `header_id`)
+VALUES (1001, 'TPL_DOWN_NOTICE_001', '下行文-通知模板', '下行文', '通知', 1, 1, 1, '适用于向下级机关发布指示、布置工作、传达有关事项等', 'XX省人民政府办公厅', 2001);
+
+-- 插入上行文请示模板
+INSERT INTO `doc_template` (`id`, `template_code`, `template_name`, `template_type`, `template_category`, `version`, `is_current_version`, `status`, `description`, `unit_name`, `header_id`)
+VALUES (1002, 'TPL_UP_REQUEST_001', '上行文-请示模板', '上行文', '请示', 1, 1, 1, '适用于向上级机关请求指示、批准事项', 'XX省人民政府办公厅', 2002);
+
+-- 插入上行文报告模板
+INSERT INTO `doc_template` (`id`, `template_code`, `template_name`, `template_type`, `template_category`, `version`, `is_current_version`, `status`, `description`, `unit_name`, `header_id`)
+VALUES (1003, 'TPL_UP_REPORT_001', '上行文-报告模板', '上行文', '报告', 1, 1, 1, '适用于向上级机关汇报工作、反映情况、答复询问', 'XX省人民政府办公厅', 2003);
+
+-- 插入平行文函模板
+INSERT INTO `doc_template` (`id`, `template_code`, `template_name`, `template_type`, `template_category`, `version`, `is_current_version`, `status`, `description`, `unit_name`, `header_id`)
+VALUES (1004, 'TPL_PARALLEL_LETTER_001', '平行文-函模板', '平行文', '函', 1, 1, 1, '适用于不相隶属机关之间商洽工作、询问和答复问题', 'XX省人民政府办公厅', 2004);
 
 -- =============================================
 -- 初始化模板字段数据

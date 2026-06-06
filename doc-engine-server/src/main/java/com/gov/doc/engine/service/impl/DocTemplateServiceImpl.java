@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gov.doc.engine.common.PageResult;
+import com.gov.doc.engine.common.UserContext;
+import com.gov.doc.engine.util.WordTemplateUtil;
 import com.gov.doc.engine.dto.DocDocumentCreateDTO;
 import com.gov.doc.engine.dto.DocTemplateFieldDTO;
 import com.gov.doc.engine.dto.DocTemplateHeaderDTO;
@@ -28,7 +30,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,13 +99,13 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
 
         DocTemplateVO vo = convertToVO(template);
 
-        LambdaQueryWrapper<DocTemplateHeader> headerWrapper = new LambdaQueryWrapper<>();
-        headerWrapper.eq(DocTemplateHeader::getTemplateId, id);
-        DocTemplateHeader header = docTemplateHeaderMapper.selectOne(headerWrapper);
-        if (header != null) {
-            DocTemplateHeaderDTO headerDTO = new DocTemplateHeaderDTO();
-            BeanUtils.copyProperties(header, headerDTO);
-            vo.setHeader(headerDTO);
+        if (template.getHeaderId() != null) {
+            DocTemplateHeader header = docTemplateHeaderMapper.selectById(template.getHeaderId());
+            if (header != null) {
+                DocTemplateHeaderDTO headerDTO = new DocTemplateHeaderDTO();
+                BeanUtils.copyProperties(header, headerDTO);
+                vo.setHeader(headerDTO);
+            }
         }
 
         LambdaQueryWrapper<DocTemplateField> fieldWrapper = new LambdaQueryWrapper<>();
@@ -145,13 +149,6 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
         }
         docTemplateMapper.insert(template);
 
-        if (saveDTO.getHeader() != null) {
-            DocTemplateHeader header = new DocTemplateHeader();
-            BeanUtils.copyProperties(saveDTO.getHeader(), header);
-            header.setTemplateId(template.getId());
-            docTemplateHeaderMapper.insert(header);
-        }
-
         if (!CollectionUtils.isEmpty(saveDTO.getFields())) {
             for (DocTemplateFieldDTO fieldDTO : saveDTO.getFields()) {
                 DocTemplateField field = new DocTemplateField();
@@ -182,24 +179,6 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
         BeanUtils.copyProperties(saveDTO, template);
         template.setId(saveDTO.getId());
         docTemplateMapper.updateById(template);
-
-        if (saveDTO.getHeader() != null) {
-            LambdaQueryWrapper<DocTemplateHeader> headerWrapper = new LambdaQueryWrapper<>();
-            headerWrapper.eq(DocTemplateHeader::getTemplateId, saveDTO.getId());
-            DocTemplateHeader existingHeader = docTemplateHeaderMapper.selectOne(headerWrapper);
-            if (existingHeader != null) {
-                DocTemplateHeader header = new DocTemplateHeader();
-                BeanUtils.copyProperties(saveDTO.getHeader(), header);
-                header.setId(existingHeader.getId());
-                header.setTemplateId(saveDTO.getId());
-                docTemplateHeaderMapper.updateById(header);
-            } else {
-                DocTemplateHeader header = new DocTemplateHeader();
-                BeanUtils.copyProperties(saveDTO.getHeader(), header);
-                header.setTemplateId(saveDTO.getId());
-                docTemplateHeaderMapper.insert(header);
-            }
-        }
 
         LambdaQueryWrapper<DocTemplateField> deleteWrapper = new LambdaQueryWrapper<>();
         deleteWrapper.eq(DocTemplateField::getTemplateId, saveDTO.getId());
@@ -249,17 +228,6 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
         DocTemplate updateEntity = new DocTemplate();
         updateEntity.setIsCurrentVersion(0);
         docTemplateMapper.update(updateEntity, updateWrapper);
-
-        LambdaQueryWrapper<DocTemplateHeader> headerWrapper = new LambdaQueryWrapper<>();
-        headerWrapper.eq(DocTemplateHeader::getTemplateId, id);
-        DocTemplateHeader oldHeader = docTemplateHeaderMapper.selectOne(headerWrapper);
-        if (oldHeader != null) {
-            DocTemplateHeader newHeader = new DocTemplateHeader();
-            BeanUtils.copyProperties(oldHeader, newHeader);
-            newHeader.setId(null);
-            newHeader.setTemplateId(newTemplate.getId());
-            docTemplateHeaderMapper.insert(newHeader);
-        }
 
         LambdaQueryWrapper<DocTemplateField> fieldWrapper = new LambdaQueryWrapper<>();
         fieldWrapper.eq(DocTemplateField::getTemplateId, id);
@@ -311,6 +279,8 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
 
     @Override
     public List<DocTemplateVO> listAvailable() {
+        UserContext currentUser = UserContext.getCurrentUser();
+        
         LambdaQueryWrapper<DocTemplate> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DocTemplate::getStatus, 1);
         queryWrapper.eq(DocTemplate::getIsCurrentVersion, 1);
@@ -322,6 +292,10 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
         }
 
         return templates.stream()
+                .filter(template -> currentUser.hasPermission(
+                        template.getPermissionRoles(),
+                        template.getPermissionUsers(),
+                        template.getPermissionDepts()))
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
     }
@@ -334,6 +308,14 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
         }
         if (template.getStatus() != 1 || template.getIsCurrentVersion() != 1) {
             throw new RuntimeException("模板未发布或不是当前版本");
+        }
+
+        UserContext currentUser = UserContext.getCurrentUser();
+        if (!currentUser.hasPermission(
+                template.getPermissionRoles(),
+                template.getPermissionUsers(),
+                template.getPermissionDepts())) {
+            throw new RuntimeException("您没有使用该模板的权限");
         }
 
         DocDocument document = new DocDocument();
@@ -387,5 +369,110 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
             }
         }
         return vo;
+    }
+
+    @Override
+    public String uploadWordTemplate(Long templateId, org.springframework.web.multipart.MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("请选择要上传的Word文件");
+        }
+        
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null || (!originalFileName.endsWith(".docx") && !originalFileName.endsWith(".doc"))) {
+            throw new RuntimeException("只支持.docx和.doc格式的Word文件");
+        }
+
+        DocTemplate template = docTemplateMapper.selectById(templateId);
+        if (template == null) {
+            throw new RuntimeException("模板不存在");
+        }
+        if (template.getStatus() != 0) {
+            throw new RuntimeException("只能修改草稿状态的模板");
+        }
+
+        try {
+            String oldFilePath = template.getTemplateFilePath();
+            String filePath = WordTemplateUtil.saveTemplateFile(file, templateId);
+            List<String> variables = WordTemplateUtil.extractVariables(file);
+            
+            template.setTemplateFilePath(filePath);
+            template.setTemplateFileName(originalFileName);
+            template.setTemplateVariables(objectMapper.writeValueAsString(variables));
+            docTemplateMapper.updateById(template);
+
+            if (oldFilePath != null && !oldFilePath.isEmpty()) {
+                WordTemplateUtil.deleteTemplateFile(oldFilePath);
+            }
+
+            return filePath;
+        } catch (Exception e) {
+            throw new RuntimeException("Word模板上传失败: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<String> extractVariablesFromWord(org.springframework.web.multipart.MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("请选择Word文件");
+        }
+        
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null || (!originalFileName.endsWith(".docx") && !originalFileName.endsWith(".doc"))) {
+            throw new RuntimeException("只支持.docx和.doc格式的Word文件");
+        }
+
+        try {
+            return WordTemplateUtil.extractVariables(file);
+        } catch (Exception e) {
+            throw new RuntimeException("解析Word模板变量失败: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public byte[] generateWordDocument(Long templateId, DocDocumentCreateDTO createDTO) {
+        DocTemplate template = docTemplateMapper.selectById(templateId);
+        if (template == null) {
+            throw new RuntimeException("模板不存在");
+        }
+        if (template.getStatus() != 1 || template.getIsCurrentVersion() != 1) {
+            throw new RuntimeException("模板未发布或不是当前版本");
+        }
+        if (template.getTemplateFilePath() == null || template.getTemplateFilePath().isEmpty()) {
+            throw new RuntimeException("该模板未上传Word模板文件");
+        }
+
+        UserContext currentUser = UserContext.getCurrentUser();
+        if (!currentUser.hasPermission(
+                template.getPermissionRoles(),
+                template.getPermissionUsers(),
+                template.getPermissionDepts())) {
+            throw new RuntimeException("您没有使用该模板的权限");
+        }
+
+        try {
+            Map<String, Object> variables = new HashMap<>();
+            
+            variables.put("docTitle", createDTO.getDocTitle());
+            variables.put("docNumber", createDTO.getDocNumber());
+            variables.put("docType", createDTO.getDocType());
+            variables.put("securityLevel", createDTO.getSecurityLevel());
+            variables.put("urgencyLevel", createDTO.getUrgencyLevel());
+            variables.put("mainSendDept", createDTO.getMainSendDept());
+            variables.put("copySendDept", createDTO.getCopySendDept());
+            variables.put("signer", createDTO.getSigner());
+            variables.put("signDate", createDTO.getSignDate());
+            variables.put("writtenDate", createDTO.getWrittenDate());
+            variables.put("docContent", createDTO.getDocContent());
+            variables.put("attachmentInfo", createDTO.getAttachmentInfo());
+            variables.put("remark", createDTO.getRemark());
+            
+            if (createDTO.getFieldData() != null) {
+                variables.putAll(createDTO.getFieldData());
+            }
+
+            return WordTemplateUtil.generateDocument(template.getTemplateFilePath(), variables);
+        } catch (Exception e) {
+            throw new RuntimeException("生成Word文档失败: " + e.getMessage(), e);
+        }
     }
 }

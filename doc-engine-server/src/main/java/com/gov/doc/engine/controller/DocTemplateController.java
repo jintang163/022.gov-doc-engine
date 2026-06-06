@@ -9,9 +9,14 @@ import com.gov.doc.engine.entity.DocDocument;
 import com.gov.doc.engine.service.DocTemplateService;
 import com.gov.doc.engine.vo.DocTemplateVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -79,5 +84,32 @@ public class DocTemplateController {
     public Result<DocDocument> createDocument(@RequestBody @Validated DocDocumentCreateDTO createDTO) {
         DocDocument document = docTemplateService.createDocumentFromTemplate(createDTO);
         return Result.success("公文创建成功", document);
+    }
+
+    @PostMapping("/upload-word/{templateId}")
+    public Result<String> uploadWordTemplate(
+            @PathVariable Long templateId,
+            @RequestParam("file") MultipartFile file) {
+        String filePath = docTemplateService.uploadWordTemplate(templateId, file);
+        return Result.success("Word模板上传成功", filePath);
+    }
+
+    @PostMapping("/extract-variables")
+    public Result<List<String>> extractVariables(@RequestParam("file") MultipartFile file) {
+        List<String> variables = docTemplateService.extractVariablesFromWord(file);
+        return Result.success(variables);
+    }
+
+    @PostMapping("/generate-word/{templateId}")
+    public ResponseEntity<byte[]> generateWordDocument(
+            @PathVariable Long templateId,
+            @RequestBody DocDocumentCreateDTO createDTO) {
+        byte[] wordBytes = docTemplateService.generateWordDocument(templateId, createDTO);
+        
+        String fileName = "document_" + System.currentTimeMillis() + ".docx";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+        headers.setContentDispositionFormData("attachment", new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1));
+        return ResponseEntity.ok().headers(headers).body(wordBytes);
     }
 }

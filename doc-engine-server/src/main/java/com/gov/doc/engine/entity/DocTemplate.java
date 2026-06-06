@@ -26,5 +26,9 @@ public class DocTemplate extends BaseEntity {
     private String permissionRoles;
     private String permissionUsers;
     private String permissionDepts;
+    private String templateFilePath;
+    private String templateFileName;
+    private String templateVariables;
+    private Long headerId;
     private String remark;
 }

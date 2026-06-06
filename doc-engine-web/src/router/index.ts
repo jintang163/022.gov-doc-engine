@@ -30,6 +30,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '模板预览' }
   },
   {
+    path: '/template-header',
+    name: 'TemplateHeaderList',
+    component: () => import('@/views/template/HeaderList.vue'),
+    meta: { title: '红头配置管理' }
+  },
+  {
     path: '/document',
     name: 'DocumentList',
     component: () => import('@/views/document/List.vue'),

@@ -10,8 +10,8 @@ import lombok.EqualsAndHashCode;
 @TableName("doc_template_header")
 public class DocTemplateHeader extends BaseEntity {
 
-    private Long templateId;
     private String headerType;
+    private String headerName;
     private String unitName;
     private String unitNameFont;
     private Integer unitNameFontSize;

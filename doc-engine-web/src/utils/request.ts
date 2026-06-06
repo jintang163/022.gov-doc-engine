@@ -27,7 +27,7 @@ service.interceptors.response.use(
       message.error(res.message || '请求失败')
       return Promise.reject(new Error(res.message || '请求失败'))
     }
-    return res.data as any
+    return res as any
   },
   (error) => {
     console.error('响应错误:', error)

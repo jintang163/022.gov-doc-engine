@@ -50,11 +50,15 @@ public class DocTemplateSaveDTO implements Serializable {
 
     private String permissionDepts;
 
-    private String remark;
+    private String templateFilePath;
 
-    @Valid
-    @NotNull(message = "红头样式不能为空")
-    private DocTemplateHeaderDTO header;
+    private String templateFileName;
+
+    private String templateVariables;
+
+    private Long headerId;
+
+    private String remark;
 
     @Valid
     private List<DocTemplateFieldDTO> fields;

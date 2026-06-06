@@ -259,7 +259,7 @@ const fetchData = async () => {
   loading.value = true
   try {
     const res = await getTemplatePage(queryForm)
-    if (res.code === 0) {
+    if (res.code === 200) {
       dataSource.value = res.data.list
       pagination.total = res.data.total
       pagination.current = res.data.pageNum
@@ -314,7 +314,7 @@ const handleCreateVersion = async (id: number) => {
   loading.value = true
   try {
     const res = await createNewVersion(id)
-    if (res.code === 0) {
+    if (res.code === 200) {
       message.success('创建新版本成功')
       const newId = res.data
       router.push(`/template/edit/${newId}`)
@@ -332,7 +332,7 @@ const handlePublish = async (id: number) => {
   loading.value = true
   try {
     const res = await publishTemplate(id)
-    if (res.code === 0) {
+    if (res.code === 200) {
       message.success('发布成功')
       fetchData()
     } else {
@@ -349,7 +349,7 @@ const handleDisable = async (id: number) => {
   loading.value = true
   try {
     const res = await disableTemplate(id)
-    if (res.code === 0) {
+    if (res.code === 200) {
       message.success('停用成功')
       fetchData()
     } else {
@@ -366,7 +366,7 @@ const handleDelete = async (id: number) => {
   loading.value = true
   try {
     const res = await deleteTemplate(id)
-    if (res.code === 0) {
+    if (res.code === 200) {
       message.success('删除成功')
       fetchData()
     } else {

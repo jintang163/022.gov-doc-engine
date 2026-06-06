@@ -244,7 +244,7 @@ const fetchTemplateDetail = async () => {
   loading.value = true
   try {
     const res = await getTemplateDetail(templateId.value)
-    if (res.code === 0) {
+    if (res.code === 200) {
       templateDetail.value = res.data
     } else {
       message.error(res.message || '获取模板信息失败')
@@ -259,7 +259,7 @@ const fetchTemplateDetail = async () => {
 const fetchTemplatePreviewHtml = async () => {
   try {
     const res = await getTemplatePreviewHtml(templateId.value)
-    if (res.code === 0) {
+    if (res.code === 200) {
       previewHtml.value = res.data
     } else {
       message.error(res.message || '获取模板预览失败')
@@ -291,7 +291,7 @@ const fetchDocumentPreviewHtml = async () => {
 
   try {
     const res = await getDocumentPreviewHtml(templateId.value, data)
-    if (res.code === 0) {
+    if (res.code === 200) {
       documentPreviewHtml.value = res.data
     } else {
       message.error(res.message || '获取公文预览失败')

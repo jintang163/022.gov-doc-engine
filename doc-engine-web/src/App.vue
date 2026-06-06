@@ -11,6 +11,7 @@
           class="header-menu"
         >
           <a-menu-item key="/template">公文模板管理</a-menu-item>
+          <a-menu-item key="/template-header">红头配置管理</a-menu-item>
           <a-menu-item key="/document">公文管理</a-menu-item>
         </a-menu>
       </div>

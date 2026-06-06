@@ -32,4 +32,10 @@ public interface DocTemplateService extends IService<DocTemplate> {
     List<DocTemplateVO> listAvailable();
 
     DocDocument createDocumentFromTemplate(DocDocumentCreateDTO createDTO);
+
+    String uploadWordTemplate(Long templateId, org.springframework.web.multipart.MultipartFile file);
+
+    List<String> extractVariablesFromWord(org.springframework.web.multipart.MultipartFile file);
+
+    byte[] generateWordDocument(Long templateId, DocDocumentCreateDTO createDTO);
 }

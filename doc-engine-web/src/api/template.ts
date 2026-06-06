@@ -5,7 +5,8 @@ import type {
   DocTemplateQueryDTO,
   PageResult,
   DocDocumentCreateDTO,
-  DocDocument
+  DocDocument,
+  DocTemplateHeaderDTO
 } from '@/types/template'
 
 export const getTemplatePage = (params: DocTemplateQueryDTO) => {
@@ -103,4 +104,76 @@ export const getTemplatePreviewUrl = (templateId: number) => {
 
 export const getDocumentPreviewUrl = (templateId: number) => {
   return `/api/doc/preview/document/html-view/${templateId}`
+}
+
+export const uploadWordTemplate = (templateId: number, file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request<string>({
+    url: `/doc/template/upload-word/${templateId}`,
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export const extractVariables = (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request<string[]>({
+    url: '/doc/template/extract-variables',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export const generateWordDocument = (templateId: number, data: DocDocumentCreateDTO) => {
+  return request<Blob>({
+    url: `/doc/template/generate-word/${templateId}`,
+    method: 'post',
+    data,
+    responseType: 'blob'
+  })
+}
+
+export const getTemplateHeaderList = () => {
+  return request<DocTemplateHeaderDTO[]>({
+    url: '/doc/template-header/list',
+    method: 'get'
+  })
+}
+
+export const getTemplateHeaderDetail = (id: number) => {
+  return request<DocTemplateHeaderDTO>({
+    url: `/doc/template-header/${id}`,
+    method: 'get'
+  })
+}
+
+export const saveTemplateHeader = (data: DocTemplateHeaderDTO) => {
+  return request<number>({
+    url: '/doc/template-header',
+    method: 'post',
+    data
+  })
+}
+
+export const updateTemplateHeader = (data: DocTemplateHeaderDTO) => {
+  return request<void>({
+    url: '/doc/template-header',
+    method: 'put',
+    data
+  })
+}
+
+export const deleteTemplateHeader = (id: number) => {
+  return request<void>({
+    url: `/doc/template-header/${id}`,
+    method: 'delete'
+  })
 }
