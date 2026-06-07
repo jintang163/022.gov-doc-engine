@@ -273,3 +273,64 @@ VALUES
 (3303, 1004, 'mainSendDept', '主送机关', 'input', 'main', 1, 1, 3, '仿宋', 16, 0, 'left', 1.50, 0),
 (3304, 1004, 'content', '正文', 'editor', 'main', 1, 1, 4, '仿宋', 16, 0, 'left', 1.50, 2),
 (3305, 1004, 'writtenDate', '成文日期', 'date', 'footer', 1, 1, 5, '仿宋', 16, 0, 'right', 1.50, 0);
+
+-- =============================================
+-- 5. 公文附件表 (doc_attachment)
+-- =============================================
+DROP TABLE IF EXISTS `doc_attachment`;
+CREATE TABLE `doc_attachment` (
+    `id` BIGINT NOT NULL COMMENT '主键ID',
+    `document_id` BIGINT NOT NULL COMMENT '公文ID',
+    `attachment_name` VARCHAR(256) NOT NULL COMMENT '附件名称',
+    `original_name` VARCHAR(256) NOT NULL COMMENT '原始文件名',
+    `file_path` VARCHAR(512) NOT NULL COMMENT '文件存储路径',
+    `file_size` BIGINT NOT NULL COMMENT '文件大小（字节）',
+    `file_type` VARCHAR(64) COMMENT '文件类型（MIME类型）',
+    `file_ext` VARCHAR(16) COMMENT '文件扩展名',
+    `sort_order` INT NOT NULL DEFAULT 0 COMMENT '排序号',
+    `remark` VARCHAR(256) COMMENT '备注',
+    `create_by` VARCHAR(64) COMMENT '创建人',
+    `create_time` DATETIME COMMENT '创建时间',
+    `update_by` VARCHAR(64) COMMENT '更新人',
+    `update_time` DATETIME COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否1是',
+    PRIMARY KEY (`id`),
+    KEY `idx_document_id` (`document_id`),
+    KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公文附件表';
+
+-- =============================================
+-- 6. 公文草稿表 (doc_draft)
+-- =============================================
+DROP TABLE IF EXISTS `doc_draft`;
+CREATE TABLE `doc_draft` (
+    `id` BIGINT NOT NULL COMMENT '主键ID',
+    `document_id` BIGINT COMMENT '关联的正式公文ID（草稿转正后关联）',
+    `template_id` BIGINT NOT NULL COMMENT '模板ID',
+    `doc_title` VARCHAR(256) COMMENT '公文标题',
+    `doc_number` VARCHAR(128) COMMENT '发文字号',
+    `doc_type` VARCHAR(32) COMMENT '公文类型',
+    `security_level` VARCHAR(32) COMMENT '保密等级',
+    `urgency_level` VARCHAR(32) COMMENT '紧急程度',
+    `main_send_dept` VARCHAR(512) COMMENT '主送机关',
+    `copy_send_dept` VARCHAR(512) COMMENT '抄送机关',
+    `signer` VARCHAR(64) COMMENT '签发人',
+    `sign_date` DATE COMMENT '签发日期',
+    `written_date` DATE COMMENT '成文日期',
+    `doc_content` LONGTEXT COMMENT '公文正文内容（HTML）',
+    `attachment_info` TEXT COMMENT '附件信息JSON',
+    `field_data` TEXT COMMENT '自定义字段数据JSON',
+    `auto_save` TINYINT NOT NULL DEFAULT 0 COMMENT '是否自动保存：0否1是',
+    `last_save_time` DATETIME COMMENT '最后保存时间',
+    `remark` VARCHAR(256) COMMENT '备注',
+    `create_by` VARCHAR(64) COMMENT '创建人',
+    `create_time` DATETIME COMMENT '创建时间',
+    `update_by` VARCHAR(64) COMMENT '更新人',
+    `update_time` DATETIME COMMENT '更新时间',
+    `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否1是',
+    PRIMARY KEY (`id`),
+    KEY `idx_template_id` (`template_id`),
+    KEY `idx_document_id` (`document_id`),
+    KEY `idx_create_by` (`create_by`),
+    KEY `idx_last_save_time` (`last_save_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公文草稿表';

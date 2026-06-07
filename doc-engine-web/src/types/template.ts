@@ -251,3 +251,123 @@ export const urgencyLevelOptions = [
   { label: '加急', value: '加急' },
   { label: '特急', value: '特急' }
 ]
+
+export interface DocAttachment {
+  id: number
+  documentId: number
+  attachmentName: string
+  originalName: string
+  filePath: string
+  fileSize: number
+  fileSizeDisplay: string
+  fileType: string
+  fileExt: string
+  sortOrder: number
+  remark: string
+  createBy: string
+  createTime: string
+}
+
+export interface DocAttachmentDTO {
+  id?: number
+  documentId: number
+  attachmentName: string
+  originalName?: string
+  filePath?: string
+  fileSize?: number
+  fileType?: string
+  fileExt?: string
+  sortOrder?: number
+  remark?: string
+}
+
+export interface DocDraft {
+  id: number
+  documentId?: number
+  templateId: number
+  templateName?: string
+  docTitle?: string
+  docNumber?: string
+  docType?: string
+  securityLevel?: string
+  urgencyLevel?: string
+  mainSendDept?: string
+  copySendDept?: string
+  signer?: string
+  signDate?: string
+  writtenDate?: string
+  docContent?: string
+  attachmentInfo?: string
+  fieldData?: string
+  autoSave?: number
+  lastSaveTime?: string
+  remark?: string
+  createBy?: string
+  createTime?: string
+}
+
+export interface DocDraftSaveDTO {
+  id?: number
+  documentId?: number
+  templateId: number
+  docTitle?: string
+  docNumber?: string
+  docType?: string
+  securityLevel?: string
+  urgencyLevel?: string
+  mainSendDept?: string
+  copySendDept?: string
+  signer?: string
+  signDate?: string
+  writtenDate?: string
+  docContent?: string
+  attachmentInfo?: string
+  fieldData?: Record<string, any>
+  autoSave?: number
+  remark?: string
+}
+
+export interface DocPlaceholderReplaceDTO {
+  content: string
+  placeholders?: Record<string, string>
+}
+
+export interface DocPlaceholderResultVO {
+  content: string
+  foundPlaceholders: string[]
+  replacedPlaceholders: string[]
+  missingPlaceholders: string[]
+  replacementMap: Record<string, string>
+}
+
+export interface DocDocumentValidationDTO {
+  templateId: number
+  docTitle?: string
+  docContent?: string
+  documentData?: DocDocumentCreateDTO
+}
+
+export interface DocValidationResultVO {
+  valid: boolean
+  errors: string[]
+  warnings: string[]
+}
+
+export interface DocDocumentUpdateDTO {
+  id: number
+  docTitle?: string
+  docNumber?: string
+  docType?: string
+  securityLevel?: string
+  urgencyLevel?: string
+  mainSendDept?: string
+  copySendDept?: string
+  signer?: string
+  signDate?: string
+  writtenDate?: string
+  docContent?: string
+  attachmentInfo?: string
+  fieldData?: Record<string, any>
+  status?: string
+  remark?: string
+}

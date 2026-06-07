@@ -46,6 +46,12 @@ const routes: RouteRecordRaw[] = [
     name: 'DocumentCreate',
     component: () => import('@/views/document/Form.vue'),
     meta: { title: '创建公文' }
+  },
+  {
+    path: '/document/edit/:id',
+    name: 'DocumentEdit',
+    component: () => import('@/views/document/Form.vue'),
+    meta: { title: '编辑公文' }
   }
 ]
 
