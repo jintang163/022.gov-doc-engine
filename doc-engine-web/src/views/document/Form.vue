@@ -958,14 +958,13 @@ onMounted(async () => {
     }
   } else {
     await loadTemplateInfo()
+    await loadPresetPlaceholders()
     await loadLatestDraft()
+    originalFormData.value = getFormDataSnapshot()
+    startAutoSaveTimer()
   }
 
-  await loadPresetPlaceholders()
-  startAutoSaveTimer()
-
   window.addEventListener('beforeunload', handleBeforeUnload)
-  originalFormData.value = getFormDataSnapshot()
 })
 
 onUnmounted(() => {

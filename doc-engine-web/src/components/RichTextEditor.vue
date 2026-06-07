@@ -250,12 +250,16 @@ const handleImageUpload = async (
       }
     })
     
-    if (res.code === 200 && res.data) {
-      const imageUrl = res.data.url || res.data
+    const isWangEditorFormat = typeof res.errno !== 'undefined'
+    const success = isWangEditorFormat ? (res.errno === 0) : (res.code === 200)
+    const responseData = isWangEditorFormat ? res : (res.data || res)
+
+    if (success && responseData && responseData.data) {
+      const imageUrl = responseData.data.url || responseData.data
       insertFn(imageUrl, file.name, imageUrl)
       message.success('图片上传成功')
     } else {
-      message.error(res.message || '图片上传失败')
+      message.error(res.message || res.msg || '图片上传失败')
     }
   } catch (error) {
     console.error('图片上传失败:', error)
@@ -286,12 +290,16 @@ const handleAttachmentUpload = async (
       }
     })
     
-    if (res.code === 200 && res.data) {
-      const attachmentUrl = res.data.url || res.data
+    const isWangEditorFormat = typeof res.errno !== 'undefined'
+    const success = isWangEditorFormat ? (res.errno === 0) : (res.code === 200)
+    const responseData = isWangEditorFormat ? res : (res.data || res)
+
+    if (success && responseData && responseData.data) {
+      const attachmentUrl = responseData.data.url || responseData.data
       insertFn(attachmentUrl, file.name)
       message.success('附件上传成功')
     } else {
-      message.error(res.message || '附件上传失败')
+      message.error(res.message || res.msg || '附件上传失败')
     }
   } catch (error) {
     console.error('附件上传失败:', error)

@@ -15,7 +15,8 @@
         :columns="columns"
         :data-source="dataSource"
         :loading="loading"
-        :pagination="false"
+        :pagination="pagination"
+        @change="handlePageChange"
         bordered
       >
         <template #bodyCell="{ column, record }">
@@ -26,9 +27,9 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <a-space>
-              <a-button type="link" size="small">查看</a-button>
-              <a-button type="link" size="small">编辑</a-button>
-              <a-button type="link" size="small">预览</a-button>
+              <a-button type="link" size="small" @click="handleView(record)">查看</a-button>
+              <a-button type="link" size="small" @click="handleEdit(record)">编辑</a-button>
+              <a-button type="link" size="small" @click="handlePreview(record)">预览</a-button>
             </a-space>
           </template>
         </template>
@@ -64,11 +65,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { listAvailableTemplates } from '@/api/template'
+import { listAvailableTemplates, getDocumentPage } from '@/api/template'
 import type { DocTemplateVO, DocDocument } from '@/types/template'
 
 const router = useRouter()
@@ -77,6 +78,15 @@ const dataSource = ref<DocDocument[]>([])
 const templateModalVisible = ref(false)
 const templateLoading = ref(false)
 const availableTemplates = ref<DocTemplateVO[]>([])
+
+const pagination = reactive({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showSizeChanger: true,
+  showQuickJumper: true,
+  showTotal: (total: number) => `共 ${total} 条`
+})
 
 const statusOptions = [
   { label: '草稿', value: 'draft', color: 'default' },
@@ -137,7 +147,42 @@ const handleSelectTemplate = (template: DocTemplateVO) => {
   message.success(`已选择模板：${template.templateName}`)
 }
 
+const loadDocumentList = async () => {
+  loading.value = true
+  try {
+    const result = await getDocumentPage({
+      pageNum: pagination.current,
+      pageSize: pagination.pageSize
+    })
+    dataSource.value = result.records || []
+    pagination.total = result.total || 0
+  } catch (error) {
+    console.error('加载公文列表失败:', error)
+    message.error('加载公文列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handlePageChange = (paginationInfo: { current: number; pageSize: number }) => {
+  pagination.current = paginationInfo.current
+  pagination.pageSize = paginationInfo.pageSize
+  loadDocumentList()
+}
+
+const handleEdit = (record: DocDocument) => {
+  router.push(`/document/edit/${record.id}`)
+}
+
+const handleView = (record: DocDocument) => {
+  router.push(`/document/edit/${record.id}`)
+}
+
+const handlePreview = (record: DocDocument) => {
+  router.push(`/document/edit/${record.id}`)
+}
+
 onMounted(() => {
-  loading.value = false
+  loadDocumentList()
 })
 </script>

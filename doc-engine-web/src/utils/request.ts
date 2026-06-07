@@ -21,8 +21,13 @@ service.interceptors.request.use(
 )
 
 service.interceptors.response.use(
-  (response: AxiosResponse<Result>) => {
+  (response: AxiosResponse<Result | any>) => {
     const res = response.data
+    
+    if (typeof res.errno !== 'undefined') {
+      return res as any
+    }
+    
     if (res.code !== 200) {
       message.error(res.message || '请求失败')
       return Promise.reject(new Error(res.message || '请求失败'))

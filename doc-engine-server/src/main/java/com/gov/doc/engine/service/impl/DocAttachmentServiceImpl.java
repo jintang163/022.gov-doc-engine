@@ -182,7 +182,7 @@ public class DocAttachmentServiceImpl extends ServiceImpl<DocAttachmentMapper, D
         if (attachment == null) {
             throw new RuntimeException("附件不存在");
         }
-        return "/api/attachment/preview/" + id;
+        return "/api/doc/document/attachment/preview/" + id;
     }
 
     private DocAttachmentVO convertToVO(DocAttachment attachment) {
