@@ -52,6 +52,42 @@ const routes: RouteRecordRaw[] = [
     name: 'DocumentEdit',
     component: () => import('@/views/document/Form.vue'),
     meta: { title: '编辑公文' }
+  },
+  {
+    path: '/seal',
+    name: 'SealList',
+    component: () => import('@/views/seal/List.vue'),
+    meta: { title: '印章管理' }
+  },
+  {
+    path: '/signature',
+    name: 'SignatureList',
+    component: () => import('@/views/signature/List.vue'),
+    meta: { title: '签章记录' }
+  },
+  {
+    path: '/signature/sign/:documentId?',
+    name: 'SignatureSign',
+    component: () => import('@/views/signature/Sign.vue'),
+    meta: { title: '签章操作' }
+  },
+  {
+    path: '/signature/verify/:signatureId',
+    name: 'SignatureVerify',
+    component: () => import('@/views/signature/Verify.vue'),
+    meta: { title: '验章结果' }
+  },
+  {
+    path: '/signature/detail/:id',
+    name: 'SignatureDetail',
+    component: () => import('@/views/signature/Detail.vue'),
+    meta: { title: '签章详情' }
+  },
+  {
+    path: '/signature/log',
+    name: 'SignatureLogList',
+    component: () => import('@/views/signature/LogList.vue'),
+    meta: { title: '签章日志' }
   }
 ]
 

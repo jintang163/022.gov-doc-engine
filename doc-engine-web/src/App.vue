@@ -7,12 +7,21 @@
           theme="dark"
           mode="horizontal"
           :selected-keys="selectedKeys"
+          :open-keys="openKeys"
+          @update:open-keys="openKeys = $event"
           @click="handleMenuClick"
           class="header-menu"
         >
           <a-menu-item key="/template">公文模板管理</a-menu-item>
           <a-menu-item key="/template-header">红头配置管理</a-menu-item>
           <a-menu-item key="/document">公文管理</a-menu-item>
+          <a-sub-menu key="signature">
+            <template #title>🔏 电子签章</template>
+            <a-menu-item key="/seal">印章管理</a-menu-item>
+            <a-menu-item key="/signature">签章记录</a-menu-item>
+            <a-menu-item key="/signature/sign">签章操作</a-menu-item>
+            <a-menu-item key="/signature/log">签章日志</a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </div>
     </a-layout-header>
@@ -32,11 +41,15 @@ import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 const selectedKeys = ref<string[]>(['/template'])
+const openKeys = ref<string[]>([])
 
 watch(
   () => route.path,
   (path) => {
     selectedKeys.value = [path]
+    if (path.startsWith('/seal') || path.startsWith('/signature')) {
+      openKeys.value = ['signature']
+    }
   },
   { immediate: true }
 )
