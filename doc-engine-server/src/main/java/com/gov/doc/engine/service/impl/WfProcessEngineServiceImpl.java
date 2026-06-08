@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gov.doc.engine.entity.*;
 import com.gov.doc.engine.enums.WfNodeTypeEnum;
 import com.gov.doc.engine.mapper.*;
+import com.gov.doc.engine.listener.DocProcessStatusListener;
 import com.gov.doc.engine.service.WfCountersignService;
 import com.gov.doc.engine.service.WfParticipantResolverService;
 import com.gov.doc.engine.service.WfProcessEngineService;
@@ -58,6 +59,9 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
     @Autowired
     private WfParticipantResolverService participantResolverService;
 
+    @Autowired(required = false)
+    private DocProcessStatusListener docProcessStatusListener;
+
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final Random RANDOM = new Random();
 
@@ -108,6 +112,13 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
         instance.setCurrentNodeId(node.getNodeId());
         instance.setCurrentNodeName(node.getNodeName());
         processInstanceMapper.updateById(instance);
+
+        if (docProcessStatusListener != null) {
+            String operatorId = history.getOperatorId();
+            String operatorName = history.getOperatorName();
+            docProcessStatusListener.updateDocStatusByNode(
+                    instance.getId(), node, operatorId, operatorName);
+        }
     }
 
     @Override

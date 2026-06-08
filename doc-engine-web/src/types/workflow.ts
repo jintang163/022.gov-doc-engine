@@ -589,3 +589,79 @@ export const defaultApprovalActions: WfApprovalAction[] = [
   { action: 'delegate', actionName: '转办', type: 'default', needTargetUser: true },
   { action: 'addSign', actionName: '加签', type: 'default', needTargetUser: true }
 ]
+
+export interface DocStatusLogVO {
+  id: number
+  docId: number
+  fromStatus: string
+  fromStatusName: string
+  toStatus: string
+  toStatusName: string
+  transitionReason: string
+  operatorId: string
+  operatorName: string
+  operationTime: string
+  remark: string
+  createTime: string
+}
+
+export interface DocDistributionVO {
+  id: number
+  docId: number
+  distributionNo: string
+  distributionType: string
+  distributionTypeName: string
+  mainSendUnits: string
+  copySendUnits: string
+  printCount: string
+  delivererId: string
+  delivererName: string
+  distributeTime: string
+  receiverId: string
+  receiverName: string
+  receiveTime: string
+  status: string
+  statusName: string
+  remark: string
+  createTime: string
+}
+
+export interface DocDistributionUnitDTO {
+  unitId: string
+  unitName: string
+  unitCode?: string
+  contactPerson?: string
+  contactPhone?: string
+}
+
+export interface DocDistributionCreateDTO {
+  docId: number
+  distributionType: string
+  mainSendUnits: DocDistributionUnitDTO[]
+  copySendUnits: DocDistributionUnitDTO[]
+  printCount?: number
+  remark?: string
+}
+
+export const docStatusOptions = [
+  { value: 'draft', label: '起草', color: 'default' },
+  { value: 'reviewing', label: '审核中', color: 'processing' },
+  { value: 'countersigning', label: '会签中', color: 'processing' },
+  { value: 'pending_sign', label: '待签发', color: 'warning' },
+  { value: 'signed', label: '已签发', color: 'success' },
+  { value: 'distributing', label: '分发中', color: 'processing' },
+  { value: 'archived', label: '归档', color: 'success' },
+  { value: 'abolished', label: '废止', color: 'error' }
+]
+
+export const distributionTypeOptions = [
+  { value: 'electronic', label: '电子传输' },
+  { value: 'print', label: '打印分发' },
+  { value: 'both', label: '电子+打印' }
+]
+
+export const distributionStatusOptions = [
+  { value: 'distributed', label: '已分发', color: 'processing' },
+  { value: 'received', label: '已接收', color: 'success' },
+  { value: 'printed', label: '已打印', color: 'default' }
+]
