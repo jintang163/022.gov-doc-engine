@@ -88,6 +88,42 @@ const routes: RouteRecordRaw[] = [
     name: 'SignatureLogList',
     component: () => import('@/views/signature/LogList.vue'),
     meta: { title: '签章日志' }
+  },
+  {
+    path: '/workflow',
+    name: 'WorkflowList',
+    component: () => import('@/views/workflow/List.vue'),
+    meta: { title: '流程定义管理' }
+  },
+  {
+    path: '/workflow/design',
+    name: 'WorkflowDesignCreate',
+    component: () => import('@/views/workflow/Design.vue'),
+    meta: { title: '新建流程' }
+  },
+  {
+    path: '/workflow/design/:id',
+    name: 'WorkflowDesignEdit',
+    component: () => import('@/views/workflow/Design.vue'),
+    meta: { title: '编辑流程' }
+  },
+  {
+    path: '/workflow/todo',
+    name: 'WorkflowTodo',
+    component: () => import('@/views/workflow/TodoList.vue'),
+    meta: { title: '我的待办' }
+  },
+  {
+    path: '/workflow/done',
+    name: 'WorkflowDone',
+    component: () => import('@/views/workflow/DoneList.vue'),
+    meta: { title: '我的已办' }
+  },
+  {
+    path: '/workflow/task/:id',
+    name: 'WorkflowTaskDetail',
+    component: () => import('@/views/workflow/TaskDetail.vue'),
+    meta: { title: '审批详情' }
   }
 ]
 
