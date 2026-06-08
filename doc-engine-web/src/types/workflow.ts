@@ -551,3 +551,41 @@ export interface WfEdge {
   condition?: string
   points?: { x: number; y: number }[]
 }
+
+export interface WfApprovalAction {
+  action: string
+  actionName: string
+  type: string
+  needTargetNode?: boolean
+  needTargetUser?: boolean
+}
+
+export interface WfApprovalData {
+  taskId: string
+  businessKey: string
+  action: string
+  opinion: string
+  attachmentIds: number[]
+  targetNodeId?: string
+  targetNodeName?: string
+  targetUserId?: string
+  targetUserName?: string
+  addSignUsers?: WfParticipantDTO[]
+}
+
+export interface WfCountersignData {
+  countersignId: string
+  countersignItemId: string
+  result: string
+  opinion: string
+  attachmentIds?: number[]
+}
+
+export const defaultApprovalActions: WfApprovalAction[] = [
+  { action: 'pass', actionName: '通过', type: 'primary' },
+  { action: 'reject', actionName: '驳回', type: 'danger' },
+  { action: 'return', actionName: '退回修改', type: 'default', needTargetNode: true },
+  { action: 'terminate', actionName: '终止', type: 'danger' },
+  { action: 'delegate', actionName: '转办', type: 'default', needTargetUser: true },
+  { action: 'addSign', actionName: '加签', type: 'default', needTargetUser: true }
+]

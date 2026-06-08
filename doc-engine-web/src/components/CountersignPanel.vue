@@ -120,7 +120,7 @@
                 <template #icon><check-circle-outlined /></template>
                 同意
               </a-button>
-              <a-button danger @click="handleSign('oppose')">
+              <a-button danger @click="handleSign('reject')">
                 <template #icon><close-circle-outlined /></template>
                 反对
               </a-button>
@@ -177,24 +177,30 @@ const emit = defineEmits<Emits>()
 
 const signData = ref<WfCountersignData>({
   countersignId: '',
+  countersignItemId: '',
   result: 'agree',
-  opinion: ''
+  opinion: '',
+  attachmentIds: []
 })
 
 const confirmVisible = ref(false)
-const pendingResult = ref<'agree' | 'oppose' | 'abstain' | null>(null)
+const pendingResult = ref<'agree' | 'reject' | 'abstain' | null>(null)
 
-const isCurrentUserPending = computed(() => {
-  if (!props.countersignInfo || !props.currentUserId) return false
-  return props.countersignInfo.signers.some(
+const currentSignerItem = computed(() => {
+  if (!props.countersignInfo || !props.currentUserId) return null
+  return props.countersignInfo.signers.find(
     (s: WfCountersignSignerVO) => s.signerId === props.currentUserId && s.status === 'pending'
   )
+})
+
+const isCurrentUserPending = computed(() => {
+  return !!currentSignerItem.value
 })
 
 const confirmTitle = computed(() => {
   const titles: Record<string, string> = {
     agree: '确认同意',
-    oppose: '确认反对',
+    reject: '确认反对',
     abstain: '确认弃权'
   }
   return titles[pendingResult.value || ''] || '确认签署'
@@ -203,7 +209,7 @@ const confirmTitle = computed(() => {
 const confirmContent = computed(() => {
   const contents: Record<string, string> = {
     agree: '确定要同意此会签吗？',
-    oppose: '确定要反对此会签吗？',
+    reject: '确定要反对此会签吗？',
     abstain: '确定要弃权吗？'
   }
   return contents[pendingResult.value || ''] || '确定要执行此操作吗？'
@@ -221,7 +227,7 @@ const getStatusColor = (status: string): string => {
 const getResultColor = (result: string): string => {
   const colors: Record<string, string> = {
     agree: 'green',
-    oppose: 'red',
+    reject: 'red',
     abstain: 'default'
   }
   return colors[result] || 'default'
@@ -236,7 +242,7 @@ const getProgressColor = (): string => {
   return '#ff4d4f'
 }
 
-const handleSign = (result: 'agree' | 'oppose' | 'abstain') => {
+const handleSign = (result: 'agree' | 'reject' | 'abstain') => {
   pendingResult.value = result
   signData.value.result = result
   confirmVisible.value = true
@@ -244,18 +250,24 @@ const handleSign = (result: 'agree' | 'oppose' | 'abstain') => {
 
 const handleConfirm = () => {
   if (!pendingResult.value) return
+  if (!currentSignerItem.value) {
+    message.error('未找到待签署的会签项')
+    return
+  }
 
   const submitData: WfCountersignData = {
     countersignId: props.countersignId,
+    countersignItemId: String(currentSignerItem.value.countersignItemId),
     result: pendingResult.value,
-    opinion: signData.value.opinion
+    opinion: signData.value.opinion,
+    attachmentIds: signData.value.attachmentIds
   }
 
   emit('sign', submitData)
   confirmVisible.value = false
   signData.value.opinion = ''
+  signData.value.attachmentIds = []
   pendingResult.value = null
-  message.success('提交成功')
 }
 </script>
 

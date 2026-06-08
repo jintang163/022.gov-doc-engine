@@ -20,6 +20,9 @@ public class WfCountersignItem extends BaseEntity {
     private String signUserDeptId;
     private String signUserDeptName;
     private String signType;
+    private String participantType;
+    private String participantValue;
+    private String participantName;
     private Integer signOrder;
     private String status;
     private String signResult;

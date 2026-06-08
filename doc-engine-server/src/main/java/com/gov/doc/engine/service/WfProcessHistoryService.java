@@ -16,5 +16,7 @@ public interface WfProcessHistoryService extends IService<WfProcessHistory> {
 
     WfProcessHistory getActiveHistory(Long processInstanceId, String nodeId);
 
+    WfProcessHistory getCompletedHistory(Long processInstanceId, String nodeId);
+
     WfProcessHistoryVO convertToVO(WfProcessHistory history);
 }

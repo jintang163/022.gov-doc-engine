@@ -72,11 +72,11 @@
       <a-tag
         v-for="(item, idx) in selectedParticipants"
         :key="idx"
-        :color="getTypeColor(item.type)"
+        :color="getTypeColor(item.participantType!)"
         closable
         @close="handleRemove(item)"
       >
-        <component :is="getTypeIcon(item.type)" /> {{ item.label }}
+        <component :is="getTypeIcon(item.participantType!)" /> {{ item.participantName }}
       </a-tag>
     </div>
 
@@ -135,9 +135,9 @@
         <a-tag
           v-for="(item, idx) in displayParticipants"
           :key="idx"
-          :color="getTypeColor(item.type)"
+          :color="getTypeColor(item.participantType!)"
         >
-          {{ item.label }}
+          {{ item.participantName }}
         </a-tag>
         <span v-if="selectedParticipants.length > 3" class="more-count">
           +{{ selectedParticipants.length - 3 }}
@@ -244,8 +244,8 @@ const displayParticipants = computed(() => {
   return selectedParticipants.value.slice(0, 3)
 })
 
-const getTypeColor = (type: WfParticipantDTO['type']): string => {
-  const colors: Record<WfParticipantDTO['type'], string> = {
+const getTypeColor = (type: string): string => {
+  const colors: Record<string, string> = {
     user: 'blue',
     post: 'cyan',
     dept: 'geekblue',
@@ -255,8 +255,8 @@ const getTypeColor = (type: WfParticipantDTO['type']): string => {
   return colors[type] || 'default'
 }
 
-const getTypeIcon = (type: WfParticipantDTO['type']) => {
-  const icons: Record<WfParticipantDTO['type'], any> = {
+const getTypeIcon = (type: string) => {
+  const icons: Record<string, any> = {
     user: UserOutlined,
     post: SolutionOutlined,
     dept: ApartmentOutlined,
@@ -267,16 +267,16 @@ const getTypeIcon = (type: WfParticipantDTO['type']) => {
 }
 
 const handleTypeChange = (type: string) => {
-  currentType.value = type as WfParticipantDTO['type']
+  currentType.value = type as any
   searchKeyword.value = ''
   if (!props.inline) {
     tempSelectedValues.value = selectedParticipants.value
-      .filter(p => p.type === currentType.value)
-      .map(p => p.value)
+      .filter(p => p.participantType === currentType.value)
+      .map(p => p.participantValue!)
   } else {
     selectedValues.value = selectedParticipants.value
-      .filter(p => p.type === currentType.value)
-      .map(p => p.value)
+      .filter(p => p.participantType === currentType.value)
+      .map(p => p.participantValue!)
   }
 }
 
@@ -285,21 +285,22 @@ const updateValue = () => {
 
   if (currentType.value === 'expression' && expressionValue.value) {
     result.push({
-      type: 'expression',
-      value: 'expression',
-      label: `表达式：${expressionValue.value}`,
-      expression: expressionValue.value
+      participantType: 'expression',
+      participantValue: expressionValue.value,
+      participantName: `表达式：${expressionValue.value}`
     })
   } else {
     const values = props.inline ? selectedValues.value : tempSelectedValues.value
     const options = mockOptions.value[currentType.value] || []
+    let order = 1
     values.forEach(val => {
       const opt = options.find(o => o.value === val)
       if (opt) {
         result.push({
-          type: currentType.value,
-          value: opt.value,
-          label: opt.label
+          participantType: currentType.value,
+          participantValue: opt.value,
+          participantName: opt.label,
+          sortOrder: order++
         })
       }
     })
@@ -329,15 +330,17 @@ const handleExpressionChange = () => {
 }
 
 const handleRemove = (item: WfParticipantDTO) => {
-  const newValue = selectedParticipants.value.filter(p => p.value !== item.value || p.type !== item.type)
+  const newValue = selectedParticipants.value.filter(
+    p => p.participantValue !== item.participantValue || p.participantType !== item.participantType
+  )
   emit('update:modelValue', newValue)
 }
 
 const openPicker = () => {
-  currentType.value = props.types[0] || 'user'
+  currentType.value = (props.types as any)[0] || 'user'
   tempSelectedValues.value = selectedParticipants.value
-    .filter(p => p.type === currentType.value)
-    .map(p => p.value)
+    .filter(p => p.participantType === currentType.value)
+    .map(p => p.participantValue!)
   pickerVisible.value = true
 }
 
@@ -347,16 +350,16 @@ const handlePickerOk = () => {
 }
 
 watch(() => props.types, (val) => {
-  if (val && val.length > 0 && !val.includes(currentType.value)) {
-    currentType.value = val[0]
+  if (val && val.length > 0 && !(val as any).includes(currentType.value)) {
+    currentType.value = (val as any)[0]
   }
 }, { immediate: true })
 
 watch(() => props.modelValue, (val) => {
   if (val && val.length > 0) {
     const firstItem = val[0]
-    if (props.types.includes(firstItem.type)) {
-      currentType.value = firstItem.type
+    if ((props.types as any).includes(firstItem.participantType)) {
+      currentType.value = firstItem.participantType as any
     }
   }
 }, { immediate: true, deep: true })

@@ -172,6 +172,8 @@ import {
   getProcessInstanceGraph,
   getOpinionsByProcessInstanceId,
   completeTask,
+  delegateTask,
+  addSignTask,
   signCountersign,
   getCountersign
 } from '@/api/workflow'
@@ -180,9 +182,13 @@ import type {
   WfProcessGraphVO,
   WfApprovalOpinionVO,
   WfApprovalDTO,
+  WfTaskDelegateDTO,
+  WfTaskAddSignDTO,
   WfCountersignSignDTO,
   WfCountersignVO,
-  WfNode
+  WfNode,
+  WfApprovalData,
+  WfCountersignData
 } from '@/types/workflow'
 import {
   getTaskTypeColor,
@@ -194,25 +200,6 @@ import {
 
 const getCurrentUserId = (): string => {
   return localStorage.getItem('userId') || sessionStorage.getItem('userId') || ''
-}
-
-interface WfApprovalData {
-  taskId: string
-  businessKey: string
-  action: string
-  opinion: string
-  attachmentIds: number[]
-  targetNodeId: string
-  targetNodeName: string
-  targetUserId: string
-  targetUserName: string
-  addSignUsers: any[]
-}
-
-interface WfCountersignData {
-  countersignId: string
-  result: string
-  opinion: string
 }
 
 interface WfCountersignInfoVO {
@@ -241,6 +228,7 @@ interface WfCountersignSignerVO {
   signTime?: string
   duration?: string
   opinion?: string
+  countersignItemId?: number
 }
 
 const route = useRoute()
@@ -259,12 +247,12 @@ const availableNodes = ref<WfNode[]>([])
 
 const isTodoTask = computed(() => {
   if (!taskDetail.value) return false
-  return taskDetail.value.status === 'PENDING' || taskDetail.value.status === 'CLAIMED' || taskDetail.value.status === 'PROCESSING'
+  return taskDetail.value.status === 'pending' || taskDetail.value.status === 'claimed' || taskDetail.value.status === 'processing'
 })
 
 const isCountersignTask = computed(() => {
   if (!taskDetail.value) return false
-  return taskDetail.value.taskType === 'COUNTERSIGN' || !!taskDetail.value.countersignId
+  return taskDetail.value.taskType === 'countersign' || !!taskDetail.value.countersign
 })
 
 const isCurrentUserAssignee = computed(() => {
@@ -282,25 +270,26 @@ const isCurrentUserPendingSign = computed(() => {
 const convertToCountersignInfoVO = (vo: WfCountersignVO): WfCountersignInfoVO => {
   return {
     nodeName: vo.nodeName,
-    status: vo.status === 'PROCESSING' ? 'processing' : vo.status === 'COMPLETED' ? 'completed' : 'processing',
+    status: vo.status === 'signing' ? 'processing' : vo.status === 'completed' ? 'completed' : vo.status,
     typeName: vo.countersignTypeName,
     voteRuleName: vo.voteTypeName,
     voteRule: vo.voteType,
-    percentage: vo.voteRate * 100,
+    percentage: vo.passPercentage,
     totalCount: vo.totalCount,
     signedCount: vo.signedCount,
-    agreeCount: vo.agreeCount,
-    opposeCount: vo.opposeCount,
-    abstainCount: vo.abstainCount,
+    agreeCount: vo.passedCount,
+    opposeCount: vo.rejectedCount,
+    abstainCount: vo.abstainedCount,
     signers: vo.items.map((item) => ({
       signerId: item.signUserId,
       signerName: item.signUserName,
       status: item.signResult ? 'signed' : 'pending',
       statusName: item.signResult ? '已签署' : '待签署',
-      result: item.signResult?.toLowerCase(),
+      result: item.signResult,
       resultName: item.signResultName,
       signTime: item.signTime,
-      opinion: item.signOpinion
+      opinion: item.signOpinion,
+      countersignItemId: item.id
     }))
   }
 }
@@ -314,14 +303,11 @@ const showCountersignPanel = computed(() => {
 })
 
 const availableActions = computed(() => {
-  const actions: string[] = ['approve', 'reject']
-  if (taskDetail.value?.allowReject === 1) {
-    actions.push('back')
+  const actions: string[] = ['pass', 'reject', 'return', 'terminate']
+  if (taskDetail.value?.canDelegate) {
+    actions.push('delegate')
   }
-  if (taskDetail.value?.allowDelegate === 1) {
-    actions.push('transfer')
-  }
-  if (taskDetail.value?.allowAddSign === 1) {
+  if (taskDetail.value?.canAddSign) {
     actions.push('addSign')
   }
   return actions
@@ -329,22 +315,22 @@ const availableActions = computed(() => {
 
 const getTimelineColor = (operationType: string) => {
   const colorMap: Record<string, string> = {
-    START: 'blue',
-    SUBMIT: 'cyan',
-    AGREE: 'green',
-    APPROVE: 'green',
-    OPPOSE: 'red',
-    REJECT: 'red',
-    ABSTAIN: 'default',
-    WITHDRAW: 'orange',
-    DELEGATE: 'orange',
-    TRANSFER: 'purple',
-    ADD_SIGN: 'cyan',
-    COUNTERSIGN: 'magenta',
-    CC: 'gold',
-    CANCEL: 'red',
-    TERMINATE: 'red',
-    SUSPEND: 'warning',
+    start: 'blue',
+    submit: 'cyan',
+    agree: 'green',
+    pass: 'green',
+    reject: 'red',
+    return: 'warning',
+    abstain: 'default',
+    withdraw: 'orange',
+    delegate: 'orange',
+    transfer: 'purple',
+    addSign: 'cyan',
+    countersign: 'magenta',
+    cc: 'gold',
+    cancel: 'red',
+    terminate: 'red',
+    suspend: 'warning',
     RESUME: 'green',
     COMPLETE: 'green'
   }
@@ -435,15 +421,56 @@ const handleNodeClick = (node: any) => {
 
 const handleApproval = async (data: WfApprovalData) => {
   try {
+    const action = data.action
+
+    if (action === 'delegate') {
+      const delegateParams: WfTaskDelegateDTO = {
+        taskId: Number(data.taskId),
+        targetUserId: data.targetUserId!,
+        targetUserName: data.targetUserName!,
+        delegateReason: data.opinion,
+        remark: ''
+      }
+      const res = await delegateTask(delegateParams)
+      if (res.code === 200) {
+        message.success('转办成功')
+        handleBack()
+      } else {
+        message.error(res.message || '转办失败')
+      }
+      return
+    }
+
+    if (action === 'addSign') {
+      const addSignParams: WfTaskAddSignDTO = {
+        taskId: Number(data.taskId),
+        addSignType: 'before',
+        signUsers: data.addSignUsers || [],
+        addSignReason: data.opinion,
+        remark: ''
+      }
+      const res = await addSignTask(addSignParams)
+      if (res.code === 200) {
+        message.success('加签成功')
+        handleBack()
+      } else {
+        message.error(res.message || '加签失败')
+      }
+      return
+    }
+
     const params: WfApprovalDTO = {
       taskId: Number(data.taskId),
-      approvalType: data.action.toUpperCase(),
+      approvalType: action,
       approvalOpinion: data.opinion,
-      approvalAttachment: data.attachmentIds.join(','),
-      nextNodeId: data.targetNodeId || undefined,
-      nextNodeName: data.targetNodeName || undefined,
-      rejectNodeId: data.targetNodeId || undefined,
-      rejectNodeName: data.targetNodeName || undefined,
+      opinionTemplateId: undefined,
+      attachmentIds: data.attachmentIds,
+      formData: undefined,
+      variables: undefined,
+      targetUserId: data.targetUserId,
+      targetUserName: data.targetUserName,
+      targetNodeId: data.targetNodeId,
+      targetNodeName: data.targetNodeName,
       remark: ''
     }
 
@@ -463,9 +490,11 @@ const handleApproval = async (data: WfApprovalData) => {
 const handleCountersign = async (data: WfCountersignData) => {
   try {
     const params: WfCountersignSignDTO = {
-      countersignId: Number(data.countersignId),
-      signResult: data.result.toUpperCase(),
+      countersignItemId: Number(data.countersignItemId),
+      signResult: data.result,
       signOpinion: data.opinion,
+      attachmentIds: data.attachmentIds,
+      variables: undefined,
       remark: ''
     }
 
@@ -474,8 +503,8 @@ const handleCountersign = async (data: WfCountersignData) => {
       message.success('会签提交成功')
       await fetchTaskDetail()
       await fetchOpinionList()
-      if (taskDetail.value?.countersignId) {
-        await fetchCountersignInfo(taskDetail.value.countersignId)
+      if (taskDetail.value?.countersign?.id) {
+        await fetchCountersignInfo(taskDetail.value.countersign.id)
       }
     } else {
       message.error(res.message || '会签提交失败')

@@ -83,6 +83,17 @@ public class WfProcessHistoryServiceImpl extends ServiceImpl<WfProcessHistoryMap
     }
 
     @Override
+    public WfProcessHistory getCompletedHistory(Long processInstanceId, String nodeId) {
+        return processHistoryMapper.selectOne(
+                new LambdaQueryWrapper<WfProcessHistory>()
+                        .eq(WfProcessHistory::getProcessInstanceId, processInstanceId)
+                        .eq(WfProcessHistory::getNodeId, nodeId)
+                        .eq(WfProcessHistory::getStatus, "history")
+                        .orderByDesc(WfProcessHistory::getEnterTime)
+                        .last("LIMIT 1"));
+    }
+
+    @Override
     public WfProcessHistoryVO convertToVO(WfProcessHistory history) {
         WfProcessHistoryVO vo = new WfProcessHistoryVO();
         BeanUtils.copyProperties(history, vo);

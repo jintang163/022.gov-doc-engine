@@ -7,6 +7,7 @@ import com.gov.doc.engine.entity.*;
 import com.gov.doc.engine.enums.WfNodeTypeEnum;
 import com.gov.doc.engine.mapper.*;
 import com.gov.doc.engine.service.WfCountersignService;
+import com.gov.doc.engine.service.WfParticipantResolverService;
 import com.gov.doc.engine.service.WfProcessEngineService;
 import com.gov.doc.engine.service.WfProcessHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
 
     @Autowired
     private WfProcessHistoryService processHistoryService;
+
+    @Autowired
+    private WfParticipantResolverService participantResolverService;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     private static final Random RANDOM = new Random();
@@ -110,6 +114,15 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
     @Transactional(rollbackFor = Exception.class)
     public void leaveNode(WfProcessInstance instance, WfProcessNode currentNode, Map<String, Object> variables) {
         processHistoryService.completeHistory(instance.getId(), currentNode.getNodeId(), "leave");
+
+        if (WfNodeTypeEnum.PARALLEL_GATEWAY.getCode().equals(currentNode.getNodeType())) {
+            return;
+        }
+
+        WfProcessNode nextNode = getNextNode(instance, currentNode, variables);
+        if (nextNode != null) {
+            executeNode(instance, nextNode, variables);
+        }
     }
 
     @Override
@@ -166,10 +179,13 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
                         .orderByAsc(WfParticipant::getSortOrder));
 
         if (participants != null && !participants.isEmpty()) {
-            WfParticipant participant = participants.get(0);
-            task.setAssigneeType(participant.getParticipantType());
-            task.setAssigneeId(participant.getParticipantValue());
-            task.setAssigneeName(participant.getParticipantName());
+            WfParticipantResolverService.ResolvedParticipant resolved = 
+                    participantResolverService.resolveParticipant(participants.get(0), variables);
+            if (resolved != null) {
+                task.setAssigneeType(resolved.getParticipantType());
+                task.setAssigneeId(resolved.getUserId());
+                task.setAssigneeName(resolved.getUserName());
+            }
         }
 
         if (StringUtils.hasText(node.getNodeConfig())) {
@@ -259,18 +275,24 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
         countersignMapper.insert(countersign);
 
         if (participants != null && !participants.isEmpty()) {
+            List<WfParticipantResolverService.ResolvedParticipant> resolvedList = 
+                    participantResolverService.resolveParticipants(participants, variables);
+            countersign.setTotalCount(resolvedList.size());
             int order = 1;
-            for (WfParticipant participant : participants) {
+            for (WfParticipantResolverService.ResolvedParticipant resolved : resolvedList) {
                 WfCountersignItem item = new WfCountersignItem();
                 item.setCountersignId(countersign.getId());
                 item.setProcessInstanceId(instance.getId());
                 item.setTaskId(task.getId());
-                item.setSignUserId(participant.getParticipantValue());
-                item.setSignUserName(participant.getParticipantName());
-                item.setSignType(participant.getParticipantType());
+                item.setSignUserId(resolved.getUserId());
+                item.setSignUserName(resolved.getUserName());
+                item.setSignType(resolved.getParticipantType());
                 item.setSignOrder(order);
                 item.setStatus("pending");
                 item.setSignSequence(order);
+                item.setParticipantType(resolved.getParticipantType());
+                item.setParticipantValue(resolved.getParticipantValue());
+                item.setParticipantName(resolved.getParticipantName());
                 countersignItemMapper.insert(item);
                 order++;
             }
@@ -288,8 +310,10 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void executeParallelGateway(WfProcessInstance instance, WfProcessNode node, Map<String, Object> variables) {
-        enterNode(instance, node, variables);
-        leaveNode(instance, node, variables);
+        List<WfProcessEdge> incomingEdges = processEdgeMapper.selectList(
+                new LambdaQueryWrapper<WfProcessEdge>()
+                        .eq(WfProcessEdge::getProcessDefId, instance.getProcessDefId())
+                        .eq(WfProcessEdge::getTargetNodeId, node.getNodeId()));
 
         List<WfProcessEdge> outgoingEdges = processEdgeMapper.selectList(
                 new LambdaQueryWrapper<WfProcessEdge>()
@@ -297,15 +321,43 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
                         .eq(WfProcessEdge::getSourceNodeId, node.getNodeId())
                         .orderByAsc(WfProcessEdge::getSortOrder));
 
-        for (WfProcessEdge edge : outgoingEdges) {
-            WfProcessNode targetNode = processNodeMapper.selectOne(
-                    new LambdaQueryWrapper<WfProcessNode>()
-                            .eq(WfProcessNode::getProcessDefId, instance.getProcessDefId())
-                            .eq(WfProcessNode::getNodeId, edge.getTargetNodeId()));
-            if (targetNode != null) {
-                executeNode(instance, targetNode, variables);
+        if (incomingEdges.size() <= 1) {
+            enterNode(instance, node, variables);
+            processHistoryService.completeHistory(instance.getId(), node.getNodeId(), "leave");
+
+            for (WfProcessEdge edge : outgoingEdges) {
+                WfProcessNode targetNode = processNodeMapper.selectOne(
+                        new LambdaQueryWrapper<WfProcessNode>()
+                                .eq(WfProcessNode::getProcessDefId, instance.getProcessDefId())
+                                .eq(WfProcessNode::getNodeId, edge.getTargetNodeId()));
+                if (targetNode != null) {
+                    executeNode(instance, targetNode, variables);
+                }
+            }
+        } else {
+            enterNode(instance, node, variables);
+
+            boolean allBranchesCompleted = checkAllParallelBranchesCompleted(instance, node, incomingEdges);
+            if (allBranchesCompleted) {
+                processHistoryService.completeHistory(instance.getId(), node.getNodeId(), "leave");
+
+                WfProcessNode nextNode = getNextNode(instance, node, variables);
+                if (nextNode != null) {
+                    executeNode(instance, nextNode, variables);
+                }
             }
         }
+    }
+
+    private boolean checkAllParallelBranchesCompleted(WfProcessInstance instance, WfProcessNode joinNode, List<WfProcessEdge> incomingEdges) {
+        for (WfProcessEdge edge : incomingEdges) {
+            WfProcessHistory history = processHistoryService.getCompletedHistory(
+                    instance.getId(), edge.getSourceNodeId());
+            if (history == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -250,12 +250,16 @@ const convertToProcessNodeDTO = (nodes: WfNode[]): WfProcessNodeDTO[] => {
   return nodes.map(node => ({
     nodeId: node.id,
     nodeName: node.name,
-    nodeType: node.type.toUpperCase(),
-    participantType: node.config?.assigneeType || 'USER',
-    participantConfig: node.config ? JSON.stringify(node.config) : undefined,
-    participants: node.config?.participants || [],
-    positionX: node.x,
-    positionY: node.y,
+    nodeType: node.type,
+    nodeConfig: node.config ? JSON.stringify(node.config) : undefined,
+    participants: node.config?.participants?.map((p: any) => ({
+      participantType: p.participantType || p.type || 'user',
+      participantValue: p.participantValue || p.value || p.id,
+      participantName: p.participantName || p.name,
+      sortOrder: p.sortOrder
+    })),
+    x: node.x,
+    y: node.y,
     width: node.width,
     height: node.height
   }))
