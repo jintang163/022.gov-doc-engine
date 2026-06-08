@@ -22,12 +22,15 @@ public enum DocStatusEnum {
     private static final Map<String, Set<String>> TRANSITION_MAP = new HashMap<>();
 
     static {
+        TRANSITION_MAP.put(null, Set.of(DRAFT.code, ABOLISHED.code));
+        TRANSITION_MAP.put("", Set.of(DRAFT.code, ABOLISHED.code));
+        TRANSITION_MAP.put("0", Set.of(DRAFT.code, ABOLISHED.code));
         TRANSITION_MAP.put(DRAFT.code, Set.of(REVIEWING.code, ABOLISHED.code));
-        TRANSITION_MAP.put(REVIEWING.code, Set.of(DRAFT.code, COUNTERSIGNING.code, PENDING_SIGN.code, ABOLISHED.code));
-        TRANSITION_MAP.put(COUNTERSIGNING.code, Set.of(REVIEWING.code, PENDING_SIGN.code, ABOLISHED.code));
+        TRANSITION_MAP.put(REVIEWING.code, Set.of(DRAFT.code, COUNTERSIGNING.code, PENDING_SIGN.code, SIGNED.code, ABOLISHED.code));
+        TRANSITION_MAP.put(COUNTERSIGNING.code, Set.of(REVIEWING.code, PENDING_SIGN.code, SIGNED.code, ABOLISHED.code));
         TRANSITION_MAP.put(PENDING_SIGN.code, Set.of(REVIEWING.code, COUNTERSIGNING.code, SIGNED.code, ABOLISHED.code));
         TRANSITION_MAP.put(SIGNED.code, Set.of(DISTRIBUTING.code, ABOLISHED.code));
-        TRANSITION_MAP.put(DISTRIBUTING.code, Set.of(ARCHIVED.code, ABOLISHED.code));
+        TRANSITION_MAP.put(DISTRIBUTING.code, Set.of(SIGNED.code, ARCHIVED.code, ABOLISHED.code));
         TRANSITION_MAP.put(ARCHIVED.code, Set.of(ABOLISHED.code));
         TRANSITION_MAP.put(ABOLISHED.code, Collections.emptySet());
     }

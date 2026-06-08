@@ -19,7 +19,9 @@ import com.gov.doc.engine.entity.DocTemplateHeader;
 import com.gov.doc.engine.mapper.DocDocumentMapper;
 import com.gov.doc.engine.mapper.DocTemplateFieldMapper;
 import com.gov.doc.engine.mapper.DocTemplateHeaderMapper;
+import com.gov.doc.engine.enums.DocStatusEnum;
 import com.gov.doc.engine.mapper.DocTemplateMapper;
+import com.gov.doc.engine.service.DocStatusMachineService;
 import com.gov.doc.engine.service.DocTemplateService;
 import com.gov.doc.engine.vo.DocTemplateVO;
 import org.springframework.beans.BeanUtils;
@@ -53,6 +55,9 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private DocStatusMachineService statusMachineService;
 
     @Override
     public PageResult<DocTemplateVO> pageList(DocTemplateQueryDTO queryDTO) {
@@ -334,9 +339,7 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
         if (!StringUtils.hasText(document.getUnitName())) {
             document.setUnitName(template.getUnitName());
         }
-        if (!StringUtils.hasText(document.getStatus())) {
-            document.setStatus("0");
-        }
+        document.setStatus(DocStatusEnum.DRAFT.getCode());
 
         if (createDTO.getFieldData() != null) {
             try {
@@ -346,7 +349,21 @@ public class DocTemplateServiceImpl extends ServiceImpl<DocTemplateMapper, DocTe
             }
         }
 
+        UserContext currentUser = UserContext.getCurrentUser();
+        String operatorId = currentUser != null ? currentUser.getUserId() : "system";
+        String operatorName = currentUser != null ? currentUser.getUserName() : "系统";
+
         docDocumentMapper.insert(document);
+
+        statusMachineService.transitionWithReason(
+                document.getId(),
+                DocStatusEnum.DRAFT.getCode(),
+                "创建公文",
+                operatorId,
+                operatorName,
+                "从模板创建公文：" + template.getTemplateName()
+        );
+
         return document;
     }
 

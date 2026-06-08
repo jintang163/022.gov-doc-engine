@@ -6,6 +6,7 @@ import com.gov.doc.engine.enums.DocStatusEnum;
 import com.gov.doc.engine.mapper.DocDocumentMapper;
 import com.gov.doc.engine.mapper.DocStatusLogMapper;
 import com.gov.doc.engine.service.DocStatusMachineService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -30,6 +32,48 @@ public class DocStatusMachineServiceImpl implements DocStatusMachineService {
 
     public void registerListener(StatusTransitionListener listener) {
         listeners.add(listener);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int normalizeStatusForExistingDocs(String operatorId, String operatorName) {
+        LambdaQueryWrapper<DocDocument> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.and(wrapper -> wrapper
+                .isNull(DocDocument::getStatus)
+                .or()
+                .eq(DocDocument::getStatus, "")
+                .or()
+                .eq(DocDocument::getStatus, "0"));
+        List<DocDocument> docs = docDocumentMapper.selectList(queryWrapper);
+
+        int count = 0;
+        for (DocDocument doc : docs) {
+            try {
+                doc.setStatus(DocStatusEnum.DRAFT.getCode());
+                doc.setUpdateBy(operatorId);
+                doc.setUpdateTime(LocalDateTime.now());
+                docDocumentMapper.updateById(doc);
+
+                DocStatusLog statusLog = new DocStatusLog();
+                statusLog.setDocId(doc.getId());
+                statusLog.setFromStatus(doc.getStatus());
+                statusLog.setToStatus(DocStatusEnum.DRAFT.getCode());
+                statusLog.setToStatusName(DocStatusEnum.DRAFT.getName());
+                statusLog.setTransitionReason("存量数据标准化");
+                statusLog.setOperatorId(operatorId);
+                statusLog.setOperatorName(operatorName);
+                statusLog.setOperationTime(LocalDateTime.now());
+                statusLog.setRemark("系统自动将状态统一为起草");
+                docStatusLogMapper.insert(statusLog);
+
+                count++;
+            } catch (Exception e) {
+                log.error("Failed to normalize status for doc: {}", doc.getId(), e);
+            }
+        }
+
+        log.info("Normalized status for {} documents", count);
+        return count;
     }
 
     @Override

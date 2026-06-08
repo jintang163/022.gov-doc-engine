@@ -20,15 +20,19 @@ CREATE TABLE IF NOT EXISTS `doc_status_log` (
   KEY `idx_operation_time` (`operation_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='公文状态流转日志';
 
--- 公文分发表
+-- 公文分发表（按单位跟踪）
 CREATE TABLE IF NOT EXISTS `doc_distribution` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `doc_id` bigint NOT NULL COMMENT '公文ID',
-  `distribution_no` varchar(64) NOT NULL COMMENT '分发编号',
+  `distribution_no` varchar(64) NOT NULL COMMENT '分发批次号',
   `distribution_type` varchar(32) NOT NULL COMMENT '分发类型：electronic电子传输 print打印 both电子+打印',
   `distribution_type_name` varchar(50) NOT NULL COMMENT '分发类型名称',
-  `main_send_units` text COMMENT '主送单位（JSON数组）',
-  `copy_send_units` text COMMENT '抄送单位（JSON数组）',
+  `unit_type` varchar(32) NOT NULL COMMENT '单位类型：main主送 copy抄送',
+  `unit_id` varchar(64) NOT NULL COMMENT '单位ID',
+  `unit_name` varchar(200) NOT NULL COMMENT '单位名称',
+  `unit_code` varchar(64) DEFAULT NULL COMMENT '单位编码',
+  `contact_person` varchar(100) DEFAULT NULL COMMENT '联系人',
+  `contact_phone` varchar(32) DEFAULT NULL COMMENT '联系电话',
   `print_count` varchar(32) DEFAULT NULL COMMENT '打印份数',
   `deliverer_id` varchar(64) DEFAULT NULL COMMENT '分发人ID',
   `deliverer_name` varchar(100) DEFAULT NULL COMMENT '分发人姓名',
@@ -36,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `doc_distribution` (
   `receiver_id` varchar(64) DEFAULT NULL COMMENT '接收人ID',
   `receiver_name` varchar(100) DEFAULT NULL COMMENT '接收人姓名',
   `receive_time` datetime DEFAULT NULL COMMENT '接收时间',
-  `status` varchar(32) NOT NULL COMMENT '状态：distributed已分发 received已接收 printed已打印',
+  `status` varchar(32) NOT NULL COMMENT '状态：pending待分发 distributed已分发 confirmed已确认 printed已打印',
   `status_name` varchar(50) NOT NULL COMMENT '状态名称',
   `remark` varchar(500) DEFAULT NULL COMMENT '备注',
   `create_by` varchar(64) DEFAULT NULL COMMENT '创建人',
@@ -44,11 +48,12 @@ CREATE TABLE IF NOT EXISTS `doc_distribution` (
   `update_by` varchar(64) DEFAULT NULL COMMENT '更新人',
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_distribution_no` (`distribution_no`),
+  UNIQUE KEY `uk_distribution_unit` (`distribution_no`, `unit_id`, `unit_type`),
   KEY `idx_doc_id` (`doc_id`),
+  KEY `idx_unit_id` (`unit_id`),
   KEY `idx_status` (`status`),
   KEY `idx_distribute_time` (`distribute_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='公文分发记录';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='公文分发记录（按单位）';
 
 -- 给会签项表添加参与者字段
 ALTER TABLE `wf_countersign_item`

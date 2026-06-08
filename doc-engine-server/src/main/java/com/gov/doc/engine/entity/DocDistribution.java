@@ -16,8 +16,12 @@ public class DocDistribution extends BaseEntity {
     private String distributionNo;
     private String distributionType;
     private String distributionTypeName;
-    private String mainSendUnits;
-    private String copySendUnits;
+    private String unitType;
+    private String unitId;
+    private String unitName;
+    private String unitCode;
+    private String contactPerson;
+    private String contactPhone;
     private String printCount;
     private String delivererId;
     private String delivererName;

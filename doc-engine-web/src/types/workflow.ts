@@ -611,18 +611,22 @@ export interface DocDistributionVO {
   distributionNo: string
   distributionType: string
   distributionTypeName: string
-  mainSendUnits: string
-  copySendUnits: string
-  printCount: string
+  unitType: string
+  unitId: string
+  unitName: string
+  unitCode?: string
+  contactPerson?: string
+  contactPhone?: string
+  printCount?: string
   delivererId: string
   delivererName: string
   distributeTime: string
-  receiverId: string
-  receiverName: string
-  receiveTime: string
+  receiverId?: string
+  receiverName?: string
+  receiveTime?: string
   status: string
   statusName: string
-  remark: string
+  remark?: string
   createTime: string
 }
 
@@ -661,7 +665,13 @@ export const distributionTypeOptions = [
 ]
 
 export const distributionStatusOptions = [
+  { value: 'pending', label: '待分发', color: 'default' },
   { value: 'distributed', label: '已分发', color: 'processing' },
-  { value: 'received', label: '已接收', color: 'success' },
+  { value: 'confirmed', label: '已确认', color: 'success' },
   { value: 'printed', label: '已打印', color: 'default' }
+]
+
+export const distributionUnitTypeOptions = [
+  { value: 'main', label: '主送单位' },
+  { value: 'copy', label: '抄送单位' }
 ]

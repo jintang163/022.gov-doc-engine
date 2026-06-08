@@ -66,6 +66,12 @@ public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceM
     @Autowired
     private WfProcessDefinitionMapper processDefinitionMapper;
 
+    @Autowired
+    private DocDocumentMapper docDocumentMapper;
+
+    @Autowired
+    private DocStatusMachineService statusMachineService;
+
     @Override
     public PageResult<WfProcessInstanceVO> pageList(Integer pageNum, Integer pageSize, String startUserId, String status, String keyword) {
         LambdaQueryWrapper<WfProcessInstance> wrapper = new LambdaQueryWrapper<>();
@@ -169,7 +175,64 @@ public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceM
         Map<String, Object> variables = startDTO.getVariables() != null ? startDTO.getVariables() : new HashMap<>();
         processEngineService.executeNode(instance, startNode, variables);
 
+        updateDocStatusOnProcessStart(instance, startDTO);
+
         return instance.getId();
+    }
+
+    private void updateDocStatusOnProcessStart(WfProcessInstance instance, WfProcessStartDTO startDTO) {
+        try {
+            String businessKey = startDTO.getBusinessKey();
+            if (!StringUtils.hasText(businessKey)) {
+                return;
+            }
+
+            DocDocument doc = docDocumentMapper.selectOne(
+                    new LambdaQueryWrapper<DocDocument>()
+                            .eq(DocDocument::getId, Long.parseLong(businessKey))
+                            .last("LIMIT 1")
+            );
+
+            if (doc == null) {
+                doc = docDocumentMapper.selectOne(
+                        new LambdaQueryWrapper<DocDocument>()
+                                .eq(DocDocument::getProcessInstanceId, instance.getId().toString())
+                                .last("LIMIT 1")
+                );
+            }
+
+            if (doc != null) {
+                String targetStatus = DocStatusEnum.REVIEWING.getCode();
+                String currentStatus = doc.getStatus();
+
+                if (!targetStatus.equals(currentStatus) && DocStatusEnum.canTransition(currentStatus, targetStatus)) {
+                    String operatorId = startDTO.getStartUserId();
+                    String operatorName = startDTO.getStartUserName();
+                    if (!StringUtils.hasText(operatorId)) {
+                        operatorId = instance.getStartUserId();
+                        operatorName = instance.getStartUserName();
+                    }
+
+                    statusMachineService.transitionWithReason(
+                            doc.getId(),
+                            targetStatus,
+                            "启动流程：" + instance.getProcessName(),
+                            operatorId,
+                            operatorName,
+                            "流程实例ID: " + instance.getId()
+                    );
+
+                    if (!StringUtils.hasText(doc.getProcessInstanceId())) {
+                        doc.setProcessInstanceId(instance.getId().toString());
+                        docDocumentMapper.updateById(doc);
+                    }
+
+                    log.info("Document {} status updated to {} on process start", doc.getId(), targetStatus);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to update document status on process start", e);
+        }
     }
 
     @Override

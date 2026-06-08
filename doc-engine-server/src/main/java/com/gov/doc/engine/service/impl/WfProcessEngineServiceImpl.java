@@ -126,6 +126,13 @@ public class WfProcessEngineServiceImpl extends ServiceImpl<WfProcessInstanceMap
     public void leaveNode(WfProcessInstance instance, WfProcessNode currentNode, Map<String, Object> variables) {
         processHistoryService.completeHistory(instance.getId(), currentNode.getNodeId(), "leave");
 
+        if (docProcessStatusListener != null) {
+            String operatorId = instance.getStartUserId();
+            String operatorName = instance.getStartUserName();
+            docProcessStatusListener.updateDocStatusOnNodeCompletion(
+                    instance.getId(), currentNode, operatorId, operatorName);
+        }
+
         if (WfNodeTypeEnum.PARALLEL_GATEWAY.getCode().equals(currentNode.getNodeType())) {
             return;
         }

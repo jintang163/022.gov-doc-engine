@@ -37,7 +37,7 @@ public class DocProcessStatusListener implements DocStatusMachineService.StatusT
         log.info("Document {} status transition: {} -> {}", docId, fromStatus, toStatus);
     }
 
-    public String mapNodeTypeToDocStatus(WfProcessNode node) {
+    public String mapNodeTypeToDocStatus(WfProcessNode node, boolean isNodeCompleted) {
         if (node == null) {
             return null;
         }
@@ -46,11 +46,15 @@ public class DocProcessStatusListener implements DocStatusMachineService.StatusT
         String nodeName = node.getNodeName();
 
         if (nodeName != null) {
+            if (nodeName.contains("签发") || nodeName.contains("签字")) {
+                if (isNodeCompleted) {
+                    return DocStatusEnum.SIGNED.getCode();
+                } else {
+                    return DocStatusEnum.PENDING_SIGN.getCode();
+                }
+            }
             if (nodeName.contains("会签") || nodeName.contains("会审")) {
                 return DocStatusEnum.COUNTERSIGNING.getCode();
-            }
-            if (nodeName.contains("签发") || nodeName.contains("签字")) {
-                return DocStatusEnum.PENDING_SIGN.getCode();
             }
             if (nodeName.contains("审核") || nodeName.contains("审批") || nodeName.contains("复核")) {
                 return DocStatusEnum.REVIEWING.getCode();
@@ -62,6 +66,57 @@ public class DocProcessStatusListener implements DocStatusMachineService.StatusT
         }
 
         return DocStatusEnum.REVIEWING.getCode();
+    }
+
+    public String mapNodeTypeToDocStatus(WfProcessNode node) {
+        return mapNodeTypeToDocStatus(node, false);
+    }
+
+    public void updateDocStatusOnNodeCompletion(Long processInstanceId, WfProcessNode completedNode,
+                                                String operatorId, String operatorName) {
+        if (processInstanceId == null || completedNode == null) {
+            return;
+        }
+
+        try {
+            DocDocument doc = docDocumentMapper.selectOne(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<DocDocument>()
+                            .eq(DocDocument::getProcessInstanceId, processInstanceId.toString())
+                            .last("LIMIT 1")
+            );
+
+            if (doc == null) {
+                return;
+            }
+
+            String targetStatus = mapNodeTypeToDocStatus(completedNode, true);
+            if (targetStatus == null) {
+                return;
+            }
+
+            String currentStatus = doc.getStatus();
+            if (targetStatus.equals(currentStatus)) {
+                return;
+            }
+
+            if (DocStatusEnum.canTransition(currentStatus, targetStatus)) {
+                statusMachineService.transitionWithReason(
+                        doc.getId(),
+                        targetStatus,
+                        "节点完成：" + completedNode.getNodeName(),
+                        operatorId,
+                        operatorName,
+                        "节点ID: " + completedNode.getNodeId()
+                );
+                log.info("Document {} status updated to {} after node {} completed",
+                        doc.getId(), targetStatus, completedNode.getNodeId());
+            } else {
+                log.warn("Cannot transition document {} from {} to {} after node completion",
+                        doc.getId(), currentStatus, targetStatus);
+            }
+        } catch (Exception e) {
+            log.error("Failed to update document status on node completion", e);
+        }
     }
 
     public void updateDocStatusByNode(Long processInstanceId, WfProcessNode currentNode,

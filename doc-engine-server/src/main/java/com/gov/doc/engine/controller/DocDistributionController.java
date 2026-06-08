@@ -44,7 +44,7 @@ public class DocDistributionController {
 
     @ApiOperation("分发公文")
     @PostMapping("/distribute")
-    public Result<DocDistribution> distribute(@RequestBody DocDistributionCreateDTO dto) {
+    public Result<List<DocDistribution>> distribute(@RequestBody DocDistributionCreateDTO dto) {
         String operatorId = "current_user";
         String operatorName = "当前用户";
         return Result.success(docDistributionService.distribute(dto, operatorId, operatorName));
