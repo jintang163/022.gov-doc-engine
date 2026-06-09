@@ -29,6 +29,8 @@ public class DatabaseInitializer implements CommandLineRunner {
             initDocDistributionTable();
             initCountersignItemColumns();
             initDocDocumentIndexes();
+            initDocArchiveTable();
+            initDocBorrowTable();
 
             log.info("Database initialization completed successfully");
         } catch (Exception e) {
@@ -119,6 +121,24 @@ public class DatabaseInitializer implements CommandLineRunner {
         } catch (Exception e) {
             log.info("Adding indexes to doc_document...");
             executeSqlFromResource("db/changelog/006_add_doc_status_and_distribution.sql");
+        }
+    }
+
+    private void initDocArchiveTable() throws Exception {
+        if (!tableExists("doc_archive")) {
+            log.info("Creating doc_archive table...");
+            executeSqlFromResource("db/changelog/007_add_archive_and_borrow.sql");
+        } else {
+            log.info("Table doc_archive already exists, skipping creation");
+        }
+    }
+
+    private void initDocBorrowTable() throws Exception {
+        if (!tableExists("doc_borrow")) {
+            log.info("Creating doc_borrow table...");
+            executeSqlFromResource("db/changelog/007_add_archive_and_borrow.sql");
+        } else {
+            log.info("Table doc_borrow already exists, skipping creation");
         }
     }
 }

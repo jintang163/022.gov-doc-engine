@@ -22,6 +22,11 @@
             <a-menu-item key="/signature/sign">签章操作</a-menu-item>
             <a-menu-item key="/signature/log">签章日志</a-menu-item>
           </a-sub-menu>
+          <a-sub-menu key="archive">
+            <template #title>🗄️ 归档与查询</template>
+            <a-menu-item key="/archive">档案管理</a-menu-item>
+            <a-menu-item key="/borrow">借阅管理</a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </div>
     </a-layout-header>
@@ -49,6 +54,8 @@ watch(
     selectedKeys.value = [path]
     if (path.startsWith('/seal') || path.startsWith('/signature')) {
       openKeys.value = ['signature']
+    } else if (path.startsWith('/archive') || path.startsWith('/borrow')) {
+      openKeys.value = ['archive']
     }
   },
   { immediate: true }

@@ -124,6 +124,30 @@ const routes: RouteRecordRaw[] = [
     name: 'WorkflowTaskDetail',
     component: () => import('@/views/workflow/TaskDetail.vue'),
     meta: { title: '审批详情' }
+  },
+  {
+    path: '/archive',
+    name: 'ArchiveList',
+    component: () => import('@/views/archive/List.vue'),
+    meta: { title: '档案管理' }
+  },
+  {
+    path: '/archive/:id',
+    name: 'ArchiveDetail',
+    component: () => import('@/views/archive/Detail.vue'),
+    meta: { title: '归档详情' }
+  },
+  {
+    path: '/borrow',
+    name: 'BorrowList',
+    component: () => import('@/views/borrow/List.vue'),
+    meta: { title: '借阅管理' }
+  },
+  {
+    path: '/borrow/apply',
+    name: 'BorrowApply',
+    component: () => import('@/views/borrow/Apply.vue'),
+    meta: { title: '借阅申请' }
   }
 ]
 
