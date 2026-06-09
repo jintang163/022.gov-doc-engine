@@ -34,6 +34,10 @@ public class BizNoGenerator {
         return generate("HD");
     }
 
+    public static String generateAuditLogNo() {
+        return generate("AL");
+    }
+
     private static synchronized String generate(String prefix) {
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         if (!datePart.equals(lastDatePart)) {

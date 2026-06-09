@@ -28,9 +28,15 @@
             <a-menu-item key="/borrow">借阅管理</a-menu-item>
           </a-sub-menu>
           <a-sub-menu key="incoming">
-            <template #title>📥 收文与签收</template>
+            <template #title>📥 收文办理</template>
             <a-menu-item key="/incoming">收文登记</a-menu-item>
-            <a-menu-item key="/handling">承办与签收</a-menu-item>
+            <a-menu-item key="/handling">承办办理</a-menu-item>
+          </a-sub-menu>
+          <a-sub-menu key="security">
+            <template #title>🔒 权限与安全</template>
+            <a-menu-item key="/security/permission">权限配置</a-menu-item>
+            <a-menu-item key="/security/audit-log">审计日志</a-menu-item>
+            <a-menu-item key="/security/integrity">完整性验证</a-menu-item>
           </a-sub-menu>
         </a-menu>
       </div>
@@ -63,6 +69,8 @@ watch(
       openKeys.value = ['archive']
     } else if (path.startsWith('/incoming') || path.startsWith('/handling')) {
       openKeys.value = ['incoming']
+    } else if (path.startsWith('/security')) {
+      openKeys.value = ['security']
     }
   },
   { immediate: true }

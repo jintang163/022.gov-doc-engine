@@ -73,18 +73,6 @@
         </a-card>
 
         <a-card
-          title="签收信息"
-          :bordered="false"
-          style="margin-bottom: 16px;"
-          v-if="detail && detail.signReceiptTime"
-        >
-          <a-descriptions :column="1" bordered size="small">
-            <a-descriptions-item label="签收时间">{{ detail.signReceiptTime }}</a-descriptions-item>
-            <a-descriptions-item label="签收IP">{{ detail.signReceiptIp }}</a-descriptions-item>
-          </a-descriptions>
-        </a-card>
-
-        <a-card
           title="操作区"
           :bordered="false"
           v-if="detail && detail.handlingType === 'assign' && detail.status === 'pending'"
@@ -105,17 +93,6 @@
             </a-form-item>
           </a-form>
         </a-card>
-
-        <a-card
-          title="操作区"
-          :bordered="false"
-          v-if="detail && detail.handlingType === 'sign_receipt' && detail.status === 'pending'"
-        >
-          <a-button type="primary" @click="handleSignReceipt" :loading="signing">
-            <template #icon><CheckOutlined /></template>
-            确认签收
-          </a-button>
-        </a-card>
       </a-col>
     </a-row>
   </div>
@@ -125,8 +102,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { ArrowLeftOutlined, CheckOutlined, SendOutlined } from '@ant-design/icons-vue'
-import { getHandlingDetail, submitFeedback, signReceipt } from '@/api/incoming'
+import { ArrowLeftOutlined, SendOutlined } from '@ant-design/icons-vue'
+import { getHandlingDetail, submitFeedback } from '@/api/incoming'
 import type { DocHandlingVO, DocHandlingFeedbackDTO } from '@/types/incoming'
 import { handlingStatusOptions } from '@/types/incoming'
 
@@ -135,7 +112,6 @@ const router = useRouter()
 
 const detail = ref<DocHandlingVO | null>(null)
 const submitting = ref(false)
-const signing = ref(false)
 
 const feedbackForm = reactive<DocHandlingFeedbackDTO>({
   handlingId: 0,
@@ -176,20 +152,6 @@ const handleSubmitFeedback = async () => {
     message.error('反馈提交失败')
   } finally {
     submitting.value = false
-  }
-}
-
-const handleSignReceipt = async () => {
-  if (!detail.value) return
-  signing.value = true
-  try {
-    await signReceipt({ handlingId: detail.value.id })
-    message.success('签收成功')
-    await loadDetail()
-  } catch (error) {
-    message.error('签收失败')
-  } finally {
-    signing.value = false
   }
 }
 

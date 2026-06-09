@@ -27,9 +27,6 @@ public class DocHandlingVO {
     private String feedbackContent;
     private LocalDateTime feedbackTime;
     private String feedbackAttachment;
-    private LocalDateTime signReceiptTime;
-    private String signReceiptIp;
-    private String signReceiptUa;
     private String status;
     private String statusName;
     private String remark;

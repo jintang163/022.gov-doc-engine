@@ -27,12 +27,16 @@ public class DatabaseInitializer implements CommandLineRunner {
         try {
             initDocStatusLogTable();
             initDocDistributionTable();
+            initDocDistributionReceiveColumns();
             initCountersignItemColumns();
             initDocDocumentIndexes();
             initDocArchiveTable();
             initDocBorrowTable();
             initDocIncomingTable();
             initDocHandlingTable();
+            initDocPermissionTable();
+            initDocAuditLogTable();
+            initDocIntegrityTable();
 
             log.info("Database initialization completed successfully");
         } catch (Exception e) {
@@ -103,6 +107,13 @@ public class DatabaseInitializer implements CommandLineRunner {
         }
     }
 
+    private void initDocDistributionReceiveColumns() throws Exception {
+        if (tableExists("doc_distribution") && !columnExists("doc_distribution", "receive_ip")) {
+            log.info("Adding receive_ip/receive_ua columns to doc_distribution...");
+            executeSqlFromResource("db/changelog/009_add_distribution_receive_columns.sql");
+        }
+    }
+
     private void initCountersignItemColumns() throws Exception {
         String[] columns = {"participant_type", "participant_value", "participant_name"};
         for (String column : columns) {
@@ -159,6 +170,33 @@ public class DatabaseInitializer implements CommandLineRunner {
             executeSqlFromResource("db/changelog/008_add_incoming_and_handling.sql");
         } else {
             log.info("Table doc_handling already exists, skipping creation");
+        }
+    }
+
+    private void initDocPermissionTable() throws Exception {
+        if (!tableExists("doc_permission")) {
+            log.info("Creating doc_permission table...");
+            executeSqlFromResource("db/changelog/010_add_security_tables.sql");
+        } else {
+            log.info("Table doc_permission already exists, skipping creation");
+        }
+    }
+
+    private void initDocAuditLogTable() throws Exception {
+        if (!tableExists("doc_audit_log")) {
+            log.info("Creating doc_audit_log table...");
+            executeSqlFromResource("db/changelog/010_add_security_tables.sql");
+        } else {
+            log.info("Table doc_audit_log already exists, skipping creation");
+        }
+    }
+
+    private void initDocIntegrityTable() throws Exception {
+        if (!tableExists("doc_integrity")) {
+            log.info("Creating doc_integrity table...");
+            executeSqlFromResource("db/changelog/010_add_security_tables.sql");
+        } else {
+            log.info("Table doc_integrity already exists, skipping creation");
         }
     }
 }

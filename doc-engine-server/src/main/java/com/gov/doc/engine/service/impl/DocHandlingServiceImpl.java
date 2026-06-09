@@ -10,7 +10,6 @@ import com.gov.doc.engine.common.UserContext;
 import com.gov.doc.engine.dto.DocHandlingDTO;
 import com.gov.doc.engine.dto.DocHandlingFeedbackDTO;
 import com.gov.doc.engine.dto.DocHandlingQueryDTO;
-import com.gov.doc.engine.dto.DocSignReceiptDTO;
 import com.gov.doc.engine.entity.DocHandling;
 import com.gov.doc.engine.entity.DocIncoming;
 import com.gov.doc.engine.enums.DocHandlingStatusEnum;
@@ -187,46 +186,12 @@ public class DocHandlingServiceImpl extends ServiceImpl<DocHandlingMapper, DocHa
     }
 
     @Override
-    public DocHandlingVO signReceipt(DocSignReceiptDTO dto) {
-        DocHandling handling = docHandlingMapper.selectById(dto.getHandlingId());
-        if (handling == null) {
-            throw new RuntimeException("处理记录不存在");
-        }
-
-        UserContext currentUser = UserContext.getCurrentUser();
-
-        LambdaUpdateWrapper<DocHandling> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(DocHandling::getId, dto.getHandlingId())
-                .set(DocHandling::getSignReceiptTime, LocalDateTime.now())
-                .set(DocHandling::getStatus, DocHandlingStatusEnum.COMPLETED.getCode())
-                .set(DocHandling::getHandlerId, String.valueOf(currentUser.getUserId()))
-                .set(DocHandling::getHandlerName, currentUser.getRealName())
-                .set(DocHandling::getHandlerDeptId, String.valueOf(currentUser.getDeptId()))
-                .set(DocHandling::getHandlerDeptName, currentUser.getDeptName())
-                .set(DocHandling::getHandlingTime, LocalDateTime.now());
-
-        docHandlingMapper.update(null, updateWrapper);
-
-        return convertToVO(docHandlingMapper.selectById(dto.getHandlingId()));
-    }
-
-    @Override
     public PageResult<DocHandlingVO> getMyHandlings(DocHandlingQueryDTO queryDTO) {
         UserContext currentUser = UserContext.getCurrentUser();
         if (queryDTO == null) {
             queryDTO = new DocHandlingQueryDTO();
         }
         queryDTO.setHandlerId(String.valueOf(currentUser.getUserId()));
-        return pageList(queryDTO);
-    }
-
-    @Override
-    public PageResult<DocHandlingVO> getPendingSignReceipts(DocHandlingQueryDTO queryDTO) {
-        if (queryDTO == null) {
-            queryDTO = new DocHandlingQueryDTO();
-        }
-        queryDTO.setHandlingType(DocHandlingTypeEnum.SIGN_RECEIPT.getCode());
-        queryDTO.setStatus(DocHandlingStatusEnum.PENDING.getCode());
         return pageList(queryDTO);
     }
 

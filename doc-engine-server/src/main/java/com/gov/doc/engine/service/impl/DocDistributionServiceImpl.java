@@ -172,7 +172,7 @@ public class DocDistributionServiceImpl extends ServiceImpl<DocDistributionMappe
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void confirmReceive(Long id, String receiverId, String receiverName, String remark) {
+    public void confirmReceive(Long id, String receiverId, String receiverName, String remark, String receiveIp, String receiveUa) {
         DocDistribution distribution = docDistributionMapper.selectById(id);
         if (distribution == null) {
             throw new IllegalArgumentException("分发记录不存在: " + id);
@@ -186,6 +186,8 @@ public class DocDistributionServiceImpl extends ServiceImpl<DocDistributionMappe
         distribution.setReceiverId(receiverId);
         distribution.setReceiverName(receiverName);
         distribution.setReceiveTime(LocalDateTime.now());
+        distribution.setReceiveIp(receiveIp);
+        distribution.setReceiveUa(receiveUa);
         distribution.setStatus(STATUS_CONFIRMED);
         distribution.setStatusName(STATUS_CONFIRMED_NAME);
         distribution.setUpdateBy(receiverId);

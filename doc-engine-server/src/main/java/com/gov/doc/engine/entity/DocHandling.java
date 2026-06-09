@@ -30,9 +30,6 @@ public class DocHandling extends BaseEntity {
     private String feedbackContent;
     private LocalDateTime feedbackTime;
     private String feedbackAttachment;
-    private LocalDateTime signReceiptTime;
-    private String signReceiptIp;
-    private String signReceiptUa;
     private String status;
     private String remark;
 }

@@ -3,22 +3,22 @@ package com.gov.doc.engine.enums;
 import lombok.Getter;
 
 @Getter
-public enum DocHandlingTypeEnum {
+public enum IntegrityStatusEnum {
 
-    DRAFT_OPINION("draft_opinion", "拟办意见"),
-    ASSIGN("assign", "转承办"),
-    FEEDBACK("feedback", "反馈");
+    PENDING("pending", "待验证"),
+    VERIFIED("verified", "已验证"),
+    TAMPERED("tampered", "已篡改");
 
     private final String code;
     private final String name;
 
-    DocHandlingTypeEnum(String code, String name) {
+    IntegrityStatusEnum(String code, String name) {
         this.code = code;
         this.name = name;
     }
 
     public static String getNameByCode(String code) {
-        for (DocHandlingTypeEnum value : values()) {
+        for (IntegrityStatusEnum value : values()) {
             if (value.getCode().equals(code)) {
                 return value.getName();
             }

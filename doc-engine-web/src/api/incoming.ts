@@ -7,7 +7,6 @@ import type {
   DocHandlingVO,
   DocHandlingDTO,
   DocHandlingFeedbackDTO,
-  DocSignReceiptDTO,
   DocHandlingQueryDTO
 } from '@/types/incoming'
 
@@ -81,25 +80,9 @@ export const submitFeedback = (data: DocHandlingFeedbackDTO) => {
   })
 }
 
-export const signReceipt = (data: DocSignReceiptDTO) => {
-  return request<DocHandlingVO>({
-    url: '/doc/handling/sign-receipt',
-    method: 'post',
-    data
-  })
-}
-
 export const getMyHandlings = (params: DocHandlingQueryDTO) => {
   return request<PageResult<DocHandlingVO>>({
     url: '/doc/handling/my-handlings',
-    method: 'get',
-    params
-  })
-}
-
-export const getPendingSignReceipts = (params: DocHandlingQueryDTO) => {
-  return request<PageResult<DocHandlingVO>>({
-    url: '/doc/handling/pending-sign-receipts',
     method: 'get',
     params
   })

@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Api(tags = "公文分发管理")
@@ -52,10 +53,14 @@ public class DocDistributionController {
 
     @ApiOperation("确认接收")
     @PostMapping("/confirm-receive/{id}")
-    public Result<Void> confirmReceive(@PathVariable Long id, @RequestParam(required = false) String remark) {
+    public Result<Void> confirmReceive(@PathVariable Long id,
+                                       @RequestParam(required = false) String remark,
+                                       HttpServletRequest request) {
         String receiverId = "current_user";
         String receiverName = "当前用户";
-        docDistributionService.confirmReceive(id, receiverId, receiverName, remark);
+        String ip = getClientIp(request);
+        String ua = request.getHeader("User-Agent");
+        docDistributionService.confirmReceive(id, receiverId, receiverName, remark, ip, ua);
         return Result.success();
     }
 
@@ -66,5 +71,19 @@ public class DocDistributionController {
         String operatorName = "当前用户";
         docDistributionService.markPrinted(id, operatorId, operatorName);
         return Result.success();
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 }

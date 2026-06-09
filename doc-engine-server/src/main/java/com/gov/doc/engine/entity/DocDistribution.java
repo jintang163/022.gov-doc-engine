@@ -29,6 +29,8 @@ public class DocDistribution extends BaseEntity {
     private String receiverId;
     private String receiverName;
     private LocalDateTime receiveTime;
+    private String receiveIp;
+    private String receiveUa;
     private String status;
     private String statusName;
     private String remark;

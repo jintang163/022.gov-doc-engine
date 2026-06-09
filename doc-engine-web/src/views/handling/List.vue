@@ -1,14 +1,13 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="page-title">承办办理与签收</h2>
+      <h2 class="page-title">承办办理</h2>
     </div>
 
     <a-card :bordered="false">
       <a-tabs v-model:activeKey="activeTab" @change="handleTabChange">
         <a-tab-pane key="all" tab="全部处理" />
         <a-tab-pane key="my" tab="我的承办" />
-        <a-tab-pane key="sign" tab="待签收" />
       </a-tabs>
 
       <a-form :model="queryForm" layout="inline" class="search-bar">
@@ -87,15 +86,6 @@
                 <template #icon><CommentOutlined /></template>
                 反馈
               </a-button>
-              <a-button
-                v-if="record.handlingType === 'sign_receipt' && record.status === 'pending'"
-                type="link"
-                size="small"
-                @click="handleSignReceipt(record)"
-              >
-                <template #icon><CheckOutlined /></template>
-                签收
-              </a-button>
             </a-space>
           </template>
         </template>
@@ -130,9 +120,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { message, Modal } from 'ant-design-vue'
-import { SearchOutlined, EyeOutlined, CommentOutlined, CheckOutlined } from '@ant-design/icons-vue'
-import { getHandlingPage, getMyHandlings, getPendingSignReceipts, submitFeedback, signReceipt } from '@/api/incoming'
+import { message } from 'ant-design-vue'
+import { SearchOutlined, EyeOutlined, CommentOutlined } from '@ant-design/icons-vue'
+import { getHandlingPage, getMyHandlings, submitFeedback } from '@/api/incoming'
 import type { DocHandlingVO, DocHandlingFeedbackDTO, DocHandlingQueryDTO } from '@/types/incoming'
 import { handlingStatusOptions, handlingTypeOptions } from '@/types/incoming'
 
@@ -144,7 +134,6 @@ const dataSource = ref<DocHandlingVO[]>([])
 
 const feedbackModalVisible = ref(false)
 const feedbackLoading = ref(false)
-const currentRecord = ref<DocHandlingVO | null>(null)
 
 const queryForm = reactive<DocHandlingQueryDTO>({
   status: undefined,
@@ -187,7 +176,7 @@ const columns = [
   { title: '目标人员', dataIndex: 'targetUserName', key: 'targetUserName', width: 100 },
   { title: '状态', key: 'status', width: 100, align: 'center' as const },
   { title: '处理时间', dataIndex: 'handlingTime', key: 'handlingTime', width: 180 },
-  { title: '操作', key: 'action', width: 220, fixed: 'right' as const }
+  { title: '操作', key: 'action', width: 160, fixed: 'right' as const }
 ]
 
 const fetchTableData = async () => {
@@ -202,8 +191,6 @@ const fetchTableData = async () => {
     let result: any
     if (activeTab.value === 'my') {
       result = await getMyHandlings(params)
-    } else if (activeTab.value === 'sign') {
-      result = await getPendingSignReceipts(params)
     } else {
       result = await getHandlingPage(params)
     }
@@ -244,7 +231,6 @@ const handleViewDetail = (record: DocHandlingVO) => {
 }
 
 const handleOpenFeedback = (record: DocHandlingVO) => {
-  currentRecord.value = record
   feedbackForm.handlingId = record.id
   feedbackForm.feedbackContent = undefined
   feedbackForm.feedbackAttachment = undefined
@@ -263,22 +249,6 @@ const handleFeedbackSubmit = async () => {
   } finally {
     feedbackLoading.value = false
   }
-}
-
-const handleSignReceipt = (record: DocHandlingVO) => {
-  Modal.confirm({
-    title: '签收确认',
-    content: '确认签收该公文？',
-    onOk: async () => {
-      try {
-        await signReceipt({ handlingId: record.id })
-        message.success('签收成功')
-        fetchTableData()
-      } catch (error) {
-        message.error('签收失败')
-      }
-    }
-  })
 }
 
 onMounted(() => {

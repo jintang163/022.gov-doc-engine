@@ -177,13 +177,31 @@ const routes: RouteRecordRaw[] = [
     path: '/handling',
     name: 'HandlingList',
     component: () => import('@/views/handling/List.vue'),
-    meta: { title: '承办与签收' }
+    meta: { title: '承办办理' }
   },
   {
     path: '/handling/detail/:id',
     name: 'HandlingDetail',
     component: () => import('@/views/handling/Detail.vue'),
     meta: { title: '处理详情' }
+  },
+  {
+    path: '/security/permission',
+    name: 'PermissionList',
+    component: () => import('@/views/security/PermissionList.vue'),
+    meta: { title: '权限配置' }
+  },
+  {
+    path: '/security/audit-log',
+    name: 'AuditLogList',
+    component: () => import('@/views/security/AuditLogList.vue'),
+    meta: { title: '审计日志' }
+  },
+  {
+    path: '/security/integrity',
+    name: 'IntegrityList',
+    component: () => import('@/views/security/IntegrityList.vue'),
+    meta: { title: '完整性验证' }
   }
 ]
 

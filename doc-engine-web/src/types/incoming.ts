@@ -86,9 +86,6 @@ export interface DocHandlingVO {
   feedbackContent: string
   feedbackTime: string
   feedbackAttachment: string
-  signReceiptTime: string
-  signReceiptIp: string
-  signReceiptUa: string
   status: string
   statusName: string
   remark: string
@@ -115,10 +112,6 @@ export interface DocHandlingFeedbackDTO {
   handlingId: number
   feedbackContent?: string
   feedbackAttachment?: string
-}
-
-export interface DocSignReceiptDTO {
-  handlingId: number
 }
 
 export interface DocHandlingQueryDTO {
@@ -150,8 +143,7 @@ export const handlingStatusOptions = [
 export const handlingTypeOptions = [
   { label: '拟办意见', value: 'draft_opinion' },
   { label: '转承办', value: 'assign' },
-  { label: '反馈', value: 'feedback' },
-  { label: '签收确认', value: 'sign_receipt' }
+  { label: '反馈', value: 'feedback' }
 ]
 
 export const incomingSourceOptions = [
