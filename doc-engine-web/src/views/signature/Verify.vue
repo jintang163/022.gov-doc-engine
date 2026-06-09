@@ -157,7 +157,7 @@ const handleBack = () => {
 }
 
 const handleBackToList = () => {
-  router.push('/signature/list')
+  router.push('/signature')
 }
 
 const handleViewDetail = () => {

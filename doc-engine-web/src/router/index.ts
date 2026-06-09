@@ -144,6 +144,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '借阅管理' }
   },
   {
+    path: '/borrow/detail/:id',
+    name: 'BorrowDetail',
+    component: () => import('@/views/borrow/Detail.vue'),
+    meta: { title: '借阅详情' }
+  },
+  {
     path: '/borrow/apply',
     name: 'BorrowApply',
     component: () => import('@/views/borrow/Apply.vue'),

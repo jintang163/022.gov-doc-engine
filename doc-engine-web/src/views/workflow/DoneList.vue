@@ -284,7 +284,7 @@ const handleTableChange = (pag: any) => {
 }
 
 const handleView = (record: WfTaskVO) => {
-  router.push(`/workflow/task/detail/${record.id}`)
+  router.push(`/workflow/task/${record.id}`)
 }
 
 onMounted(() => {

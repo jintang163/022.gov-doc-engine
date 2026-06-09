@@ -397,11 +397,11 @@ const handleTableChange = (pag: any) => {
 }
 
 const handleHandle = (record: WfTaskVO) => {
-  router.push(`/workflow/task/detail/${record.id}`)
+  router.push(`/workflow/task/${record.id}`)
 }
 
 const handleView = (record: WfTaskVO) => {
-  router.push(`/workflow/task/detail/${record.id}`)
+  router.push(`/workflow/task/${record.id}`)
 }
 
 const handleClaim = async (record: WfTaskVO) => {

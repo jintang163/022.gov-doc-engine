@@ -3,6 +3,7 @@ package com.gov.doc.engine.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.gov.doc.engine.common.BizNoGenerator;
 import com.gov.doc.engine.common.PageResult;
 import com.gov.doc.engine.common.UserContext;
 import com.gov.doc.engine.dto.DocArchiveDTO;
@@ -23,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -244,8 +244,7 @@ public class DocArchiveServiceImpl extends ServiceImpl<DocArchiveMapper, DocArch
     }
 
     private String generateArchiveNo() {
-        return "DA" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-                + String.format("%04d", new Random().nextInt(10000));
+        return BizNoGenerator.generateArchiveNo();
     }
 
     private DocArchiveVO convertToVO(DocArchive archive) {

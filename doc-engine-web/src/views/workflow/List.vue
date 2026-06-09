@@ -327,7 +327,7 @@ const handleDesign = (id: number) => {
 }
 
 const handlePreview = (id: number) => {
-  router.push(`/workflow/preview/${id}`)
+  router.push(`/workflow/design/${id}`)
 }
 
 const handlePublish = async (id: number) => {

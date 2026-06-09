@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.gov.doc.engine.common.BizNoGenerator;
 import com.gov.doc.engine.common.PageResult;
 import com.gov.doc.engine.common.UserContext;
 import com.gov.doc.engine.dto.DocBorrowApplyDTO;
@@ -27,7 +28,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -254,8 +254,7 @@ public class DocBorrowServiceImpl extends ServiceImpl<DocBorrowMapper, DocBorrow
     }
 
     private String generateBorrowNo() {
-        return "BR" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-                + String.format("%04d", new Random().nextInt(10000));
+        return BizNoGenerator.generateBorrowNo();
     }
 
     private DocBorrowVO convertToVO(DocBorrow borrow) {
