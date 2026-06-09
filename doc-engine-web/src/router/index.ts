@@ -154,6 +154,36 @@ const routes: RouteRecordRaw[] = [
     name: 'BorrowApply',
     component: () => import('@/views/borrow/Apply.vue'),
     meta: { title: '借阅申请' }
+  },
+  {
+    path: '/incoming',
+    name: 'IncomingList',
+    component: () => import('@/views/incoming/List.vue'),
+    meta: { title: '收文登记' }
+  },
+  {
+    path: '/incoming/register',
+    name: 'IncomingRegister',
+    component: () => import('@/views/incoming/Register.vue'),
+    meta: { title: '收文登记' }
+  },
+  {
+    path: '/incoming/:id',
+    name: 'IncomingDetail',
+    component: () => import('@/views/incoming/Detail.vue'),
+    meta: { title: '收文详情' }
+  },
+  {
+    path: '/handling',
+    name: 'HandlingList',
+    component: () => import('@/views/handling/List.vue'),
+    meta: { title: '承办与签收' }
+  },
+  {
+    path: '/handling/detail/:id',
+    name: 'HandlingDetail',
+    component: () => import('@/views/handling/Detail.vue'),
+    meta: { title: '处理详情' }
   }
 ]
 

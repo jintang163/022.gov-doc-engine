@@ -27,6 +27,11 @@
             <a-menu-item key="/archive">档案管理</a-menu-item>
             <a-menu-item key="/borrow">借阅管理</a-menu-item>
           </a-sub-menu>
+          <a-sub-menu key="incoming">
+            <template #title>📥 收文与签收</template>
+            <a-menu-item key="/incoming">收文登记</a-menu-item>
+            <a-menu-item key="/handling">承办与签收</a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </div>
     </a-layout-header>
@@ -56,6 +61,8 @@ watch(
       openKeys.value = ['signature']
     } else if (path.startsWith('/archive') || path.startsWith('/borrow')) {
       openKeys.value = ['archive']
+    } else if (path.startsWith('/incoming') || path.startsWith('/handling')) {
+      openKeys.value = ['incoming']
     }
   },
   { immediate: true }

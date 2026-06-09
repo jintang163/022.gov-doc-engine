@@ -26,6 +26,14 @@ public class BizNoGenerator {
         return generate("BR");
     }
 
+    public static String generateIncomingNo() {
+        return generate("IC");
+    }
+
+    public static String generateHandlingNo() {
+        return generate("HD");
+    }
+
     private static synchronized String generate(String prefix) {
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         if (!datePart.equals(lastDatePart)) {

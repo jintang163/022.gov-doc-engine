@@ -31,6 +31,8 @@ public class DatabaseInitializer implements CommandLineRunner {
             initDocDocumentIndexes();
             initDocArchiveTable();
             initDocBorrowTable();
+            initDocIncomingTable();
+            initDocHandlingTable();
 
             log.info("Database initialization completed successfully");
         } catch (Exception e) {
@@ -139,6 +141,24 @@ public class DatabaseInitializer implements CommandLineRunner {
             executeSqlFromResource("db/changelog/007_add_archive_and_borrow.sql");
         } else {
             log.info("Table doc_borrow already exists, skipping creation");
+        }
+    }
+
+    private void initDocIncomingTable() throws Exception {
+        if (!tableExists("doc_incoming")) {
+            log.info("Creating doc_incoming table...");
+            executeSqlFromResource("db/changelog/008_add_incoming_and_handling.sql");
+        } else {
+            log.info("Table doc_incoming already exists, skipping creation");
+        }
+    }
+
+    private void initDocHandlingTable() throws Exception {
+        if (!tableExists("doc_handling")) {
+            log.info("Creating doc_handling table...");
+            executeSqlFromResource("db/changelog/008_add_incoming_and_handling.sql");
+        } else {
+            log.info("Table doc_handling already exists, skipping creation");
         }
     }
 }
