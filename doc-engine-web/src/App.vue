@@ -12,9 +12,22 @@
           @click="handleMenuClick"
           class="header-menu"
         >
+          <a-sub-menu key="org">
+            <template #title>🏛️ 组织架构</template>
+            <a-menu-item key="/org/unit">单位管理</a-menu-item>
+            <a-menu-item key="/org/dept">部门管理</a-menu-item>
+            <a-menu-item key="/org/post">岗位管理</a-menu-item>
+            <a-menu-item key="/org/user">人员管理</a-menu-item>
+          </a-sub-menu>
           <a-menu-item key="/template">公文模板管理</a-menu-item>
           <a-menu-item key="/template-header">红头配置管理</a-menu-item>
           <a-menu-item key="/document">公文管理</a-menu-item>
+          <a-sub-menu key="workflow">
+            <template #title>⚙️ 流程管理</template>
+            <a-menu-item key="/workflow">流程定义</a-menu-item>
+            <a-menu-item key="/workflow/todo">我的待办</a-menu-item>
+            <a-menu-item key="/workflow/done">我的已办</a-menu-item>
+          </a-sub-menu>
           <a-sub-menu key="signature">
             <template #title>🔏 电子签章</template>
             <a-menu-item key="/seal">印章管理</a-menu-item>
@@ -38,6 +51,7 @@
             <a-menu-item key="/security/audit-log">审计日志</a-menu-item>
             <a-menu-item key="/security/integrity">完整性验证</a-menu-item>
           </a-sub-menu>
+          <a-menu-item key="/stat/dashboard">📊 数据统计</a-menu-item>
         </a-menu>
       </div>
     </a-layout-header>
@@ -63,7 +77,11 @@ watch(
   () => route.path,
   (path) => {
     selectedKeys.value = [path]
-    if (path.startsWith('/seal') || path.startsWith('/signature')) {
+    if (path.startsWith('/org')) {
+      openKeys.value = ['org']
+    } else if (path.startsWith('/workflow')) {
+      openKeys.value = ['workflow']
+    } else if (path.startsWith('/seal') || path.startsWith('/signature')) {
       openKeys.value = ['signature']
     } else if (path.startsWith('/archive') || path.startsWith('/borrow')) {
       openKeys.value = ['archive']

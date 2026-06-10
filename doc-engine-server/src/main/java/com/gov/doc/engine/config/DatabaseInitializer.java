@@ -37,6 +37,10 @@ public class DatabaseInitializer implements CommandLineRunner {
             initDocPermissionTable();
             initDocAuditLogTable();
             initDocIntegrityTable();
+            initSysUnitTable();
+            initSysDeptTable();
+            initSysPostTable();
+            initSysUserTable();
 
             log.info("Database initialization completed successfully");
         } catch (Exception e) {
@@ -197,6 +201,42 @@ public class DatabaseInitializer implements CommandLineRunner {
             executeSqlFromResource("db/changelog/010_add_security_tables.sql");
         } else {
             log.info("Table doc_integrity already exists, skipping creation");
+        }
+    }
+
+    private void initSysUnitTable() throws Exception {
+        if (!tableExists("sys_unit")) {
+            log.info("Creating sys_unit table...");
+            executeSqlFromResource("db/changelog/011_add_org_tables.sql");
+        } else {
+            log.info("Table sys_unit already exists, skipping creation");
+        }
+    }
+
+    private void initSysDeptTable() throws Exception {
+        if (!tableExists("sys_dept")) {
+            log.info("Creating sys_dept table...");
+            executeSqlFromResource("db/changelog/011_add_org_tables.sql");
+        } else {
+            log.info("Table sys_dept already exists, skipping creation");
+        }
+    }
+
+    private void initSysPostTable() throws Exception {
+        if (!tableExists("sys_post")) {
+            log.info("Creating sys_post table...");
+            executeSqlFromResource("db/changelog/011_add_org_tables.sql");
+        } else {
+            log.info("Table sys_post already exists, skipping creation");
+        }
+    }
+
+    private void initSysUserTable() throws Exception {
+        if (!tableExists("sys_user")) {
+            log.info("Creating sys_user table...");
+            executeSqlFromResource("db/changelog/011_add_org_tables.sql");
+        } else {
+            log.info("Table sys_user already exists, skipping creation");
         }
     }
 }

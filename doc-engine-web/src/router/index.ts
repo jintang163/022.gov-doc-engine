@@ -202,6 +202,36 @@ const routes: RouteRecordRaw[] = [
     name: 'IntegrityList',
     component: () => import('@/views/security/IntegrityList.vue'),
     meta: { title: '完整性验证' }
+  },
+  {
+    path: '/org/unit',
+    name: 'OrgUnitList',
+    component: () => import('@/views/org/UnitList.vue'),
+    meta: { title: '单位管理' }
+  },
+  {
+    path: '/org/dept',
+    name: 'OrgDeptList',
+    component: () => import('@/views/org/DeptList.vue'),
+    meta: { title: '部门管理' }
+  },
+  {
+    path: '/org/post',
+    name: 'OrgPostList',
+    component: () => import('@/views/org/PostList.vue'),
+    meta: { title: '岗位管理' }
+  },
+  {
+    path: '/org/user',
+    name: 'OrgUserList',
+    component: () => import('@/views/org/UserList.vue'),
+    meta: { title: '人员管理' }
+  },
+  {
+    path: '/stat/dashboard',
+    name: 'StatDashboard',
+    component: () => import('@/views/stat/Dashboard.vue'),
+    meta: { title: '数据统计' }
   }
 ]
 

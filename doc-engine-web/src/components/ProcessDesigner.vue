@@ -215,7 +215,8 @@ import {
   GatewayOutlined,
   SaveOutlined,
   DeleteOutlined,
-  CloseOutlined
+  CloseOutlined,
+  SwapOutlined
 } from '@ant-design/icons-vue'
 import ParticipantSelector from './ParticipantSelector.vue'
 
@@ -277,7 +278,8 @@ const getNodeIconByType = (type: NodeType) => {
     'userTask': UserOutlined,
     'countersign': TeamOutlined,
     'parallelGateway': ApartmentOutlined,
-    'exclusiveGateway': GatewayOutlined
+    'exclusiveGateway': GatewayOutlined,
+    'inclusiveGateway': SwapOutlined
   }
   return iconMap[type] || UserOutlined
 }
@@ -297,7 +299,8 @@ const getNodeDefaultConfig = (type: NodeType): WfNodeConfig => {
     'parallelGateway': {},
     'exclusiveGateway': {
       condition: ''
-    }
+    },
+    'inclusiveGateway': {}
   }
   return configs[type] || {}
 }
@@ -309,7 +312,8 @@ const getNodeDefaultSize = (type: NodeType) => {
     'userTask': { width: 120, height: 60 },
     'countersign': { width: 120, height: 60 },
     'parallelGateway': { width: 60, height: 60 },
-    'exclusiveGateway': { width: 60, height: 60 }
+    'exclusiveGateway': { width: 60, height: 60 },
+    'inclusiveGateway': { width: 60, height: 60 }
   }
   return sizes[type] || { width: 100, height: 60 }
 }
@@ -321,7 +325,8 @@ const getNodeDefaultName = (type: NodeType): string => {
     'userTask': '用户任务',
     'countersign': '会签',
     'parallelGateway': '并行网关',
-    'exclusiveGateway': '排他网关'
+    'exclusiveGateway': '排他网关',
+    'inclusiveGateway': '包容网关'
   }
   return names[type] || '节点'
 }
@@ -568,6 +573,266 @@ const handleClear = () => {
   })
 }
 
+const BPMN_NS = 'http://www.omg.org/spec/BPMN/20100524/MODEL'
+const BPMNDI_NS = 'http://www.omg.org/spec/BPMN/20100524/DI'
+const DC_NS = 'http://www.omg.org/spec/DD/20100524/DC'
+const XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
+
+const nodeTypeToBpmnElement = (type: NodeType): string => {
+  const map: Record<NodeType, string> = {
+    'start': 'startEvent',
+    'end': 'endEvent',
+    'userTask': 'userTask',
+    'countersign': 'userTask',
+    'parallelGateway': 'parallelGateway',
+    'exclusiveGateway': 'exclusiveGateway',
+    'inclusiveGateway': 'inclusiveGateway'
+  }
+  return map[type] || 'userTask'
+}
+
+const bpmnElementToNodeType = (localName: string, element: Element): NodeType | null => {
+  const hasMultiInstance = element.getElementsByTagNameNS(BPMN_NS, 'multiInstanceLoopCharacteristics').length > 0
+  switch (localName) {
+    case 'startEvent': return 'start'
+    case 'endEvent': return 'end'
+    case 'userTask': return hasMultiInstance ? 'countersign' : 'userTask'
+    case 'parallelGateway': return 'parallelGateway'
+    case 'exclusiveGateway': return 'exclusiveGateway'
+    case 'inclusiveGateway': return 'inclusiveGateway'
+    default: return null
+  }
+}
+
+const escapeXml = (str: string): string => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
+const exportBpmnXml = (): string => {
+  const processId = 'process_' + Date.now()
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+  xml += `<definitions xmlns="${BPMN_NS}" xmlns:bpmndi="${BPMNDI_NS}" xmlns:omgdc="${DC_NS}" xmlns:xsi="${XSI_NS}" targetNamespace="http://example.com/bpmn">\n`
+  xml += `  <process id="${escapeXml(processId)}" isExecutable="true">\n`
+
+  for (const node of nodes.value) {
+    const elementName = nodeTypeToBpmnElement(node.type)
+    const nodeId = escapeXml(node.id)
+    const nodeName = escapeXml(node.name)
+
+    if (node.type === 'countersign') {
+      xml += `    <${elementName} id="${nodeId}" name="${nodeName}">\n`
+      xml += `      <multiInstanceLoopCharacteristics isSequential="false"/>\n`
+      xml += `    </${elementName}>\n`
+    } else {
+      xml += `    <${elementName} id="${nodeId}" name="${nodeName}"/>\n`
+    }
+  }
+
+  for (const edge of edges.value) {
+    const edgeId = escapeXml(edge.id)
+    const sourceRef = escapeXml(edge.source)
+    const targetRef = escapeXml(edge.target)
+    const edgeName = edge.label ? ` name="${escapeXml(edge.label)}"` : ''
+
+    if (edge.condition) {
+      xml += `    <sequenceFlow id="${edgeId}"${edgeName} sourceRef="${sourceRef}" targetRef="${targetRef}">\n`
+      xml += `      <conditionExpression xsi:type="tFormalExpression">${escapeXml(edge.condition)}</conditionExpression>\n`
+      xml += `    </sequenceFlow>\n`
+    } else {
+      xml += `    <sequenceFlow id="${edgeId}"${edgeName} sourceRef="${sourceRef}" targetRef="${targetRef}"/>\n`
+    }
+  }
+
+  xml += '  </process>\n'
+  xml += '</definitions>'
+  return xml
+}
+
+const importBpmnXml = (xml: string): void => {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(xml, 'text/xml')
+
+  const parseError = doc.getElementsByTagName('parsererror')
+  if (parseError.length > 0) {
+    message.error('BPMN XML解析失败')
+    return
+  }
+
+  const processElement = doc.getElementsByTagNameNS(BPMN_NS, 'process')[0]
+  if (!processElement) {
+    message.error('未找到process元素')
+    return
+  }
+
+  const newNodes: WfNode[] = []
+  const newEdges: WfEdge[] = []
+  const flowElements = processElement.childNodes
+
+  const nodeOrder: { node: WfNode; order: number }[] = []
+  let order = 0
+
+  for (let i = 0; i < flowElements.length; i++) {
+    const el = flowElements[i] as Element
+    if (el.nodeType !== Node.ELEMENT_NODE) continue
+
+    const localName = el.localName
+    const nodeType = bpmnElementToNodeType(localName, el)
+
+    if (nodeType) {
+      const id = el.getAttribute('id') || generateId()
+      const name = el.getAttribute('name') || getNodeDefaultName(nodeType)
+      const size = getNodeDefaultSize(nodeType)
+      const config = getNodeDefaultConfig(nodeType)
+
+      if (nodeType === 'exclusiveGateway' && !config.condition) {
+        const condExpr = el.getElementsByTagNameNS(BPMN_NS, 'conditionExpression')[0]
+        if (condExpr) {
+          config.condition = condExpr.textContent || ''
+        }
+      }
+
+      let nodeOrderValue = order++
+      if (nodeType === 'start') nodeOrderValue = -1
+
+      newNodes.push({
+        id,
+        type: nodeType,
+        name,
+        x: 0,
+        y: 200,
+        width: size.width,
+        height: size.height,
+        config
+      })
+      nodeOrder.push({ node: newNodes[newNodes.length - 1], order: nodeOrderValue })
+    }
+
+    if (localName === 'sequenceFlow') {
+      const id = el.getAttribute('id') || generateId()
+      const source = el.getAttribute('sourceRef') || ''
+      const target = el.getAttribute('targetRef') || ''
+      const label = el.getAttribute('name') || undefined
+      const condExpr = el.getElementsByTagNameNS(BPMN_NS, 'conditionExpression')[0]
+      const condition = condExpr ? condExpr.textContent || undefined : undefined
+
+      newEdges.push({
+        id,
+        source,
+        target,
+        label,
+        condition
+      })
+    }
+  }
+
+  const endNodes = newNodes.filter(n => n.type === 'end')
+  const nonEndNodes = newNodes.filter(n => n.type !== 'end')
+
+  const sortedNonEnd = nodeOrder
+    .filter(item => item.node.type !== 'end')
+    .sort((a, b) => a.order - b.order)
+
+  sortedNonEnd.forEach((item, index) => {
+    item.node.x = 50 + index * 200
+    item.node.y = 200
+  })
+
+  endNodes.forEach((node, index) => {
+    node.x = 50 + sortedNonEnd.length * 200
+    node.y = 200 + index * 100
+  })
+
+  nodes.value = newNodes
+  edges.value = newEdges
+  selectedNodeId.value = null
+  selectedEdgeId.value = null
+  message.success('BPMN导入成功')
+}
+
+const validateFlow = (): { valid: boolean; errors: string[] } => {
+  const errors: string[] = []
+
+  const startNodes = nodes.value.filter(n => n.type === 'start')
+  if (startNodes.length === 0) {
+    errors.push('缺少开始节点')
+  } else if (startNodes.length > 1) {
+    errors.push('只能有一个开始节点')
+  }
+
+  const endNodes = nodes.value.filter(n => n.type === 'end')
+  if (endNodes.length === 0) {
+    errors.push('缺少结束节点')
+  }
+
+  for (const node of nodes.value) {
+    const incoming = edges.value.filter(e => e.target === node.id)
+    const outgoing = edges.value.filter(e => e.source === node.id)
+    const isIsolated = incoming.length === 0 && outgoing.length === 0
+
+    if (isIsolated) {
+      errors.push(`节点"${node.name}"是孤立节点，未连接任何边`)
+      continue
+    }
+
+    if (node.type !== 'start' && incoming.length === 0) {
+      errors.push(`节点"${node.name}"没有入边`)
+    }
+
+    if (node.type !== 'end' && outgoing.length === 0) {
+      errors.push(`节点"${node.name}"没有出边`)
+    }
+  }
+
+  const visited = new Map<string, number>()
+  const hasCycle = (nodeId: string, path: Set<string>): boolean => {
+    if (path.has(nodeId)) return true
+    if (visited.get(nodeId) === 2) return false
+
+    visited.set(nodeId, 1)
+    path.add(nodeId)
+
+    const outgoing = edges.value.filter(e => e.source === nodeId)
+    for (const edge of outgoing) {
+      if (hasCycle(edge.target, path)) return true
+    }
+
+    path.delete(nodeId)
+    visited.set(nodeId, 2)
+    return false
+  }
+
+  for (const node of nodes.value) {
+    if (node.type === 'start') {
+      visited.clear()
+      if (hasCycle(node.id, new Set())) {
+        errors.push('流程中存在循环，可能导致无限循环')
+        break
+      }
+    }
+  }
+
+  return { valid: errors.length === 0, errors }
+}
+
+const getData = () => {
+  return {
+    nodes: JSON.parse(JSON.stringify(nodes.value)),
+    edges: JSON.parse(JSON.stringify(edges.value))
+  }
+}
+
+defineExpose({
+  exportBpmnXml,
+  importBpmnXml,
+  validateFlow,
+  getData
+})
+
 const initDefaultFlow = () => {
   if (nodes.value.length === 0) {
     const startNode: WfNode = {
@@ -743,7 +1008,7 @@ onMounted(() => {
           border-color: #cf1322;
         }
 
-        &.parallelGateway, &.exclusiveGateway {
+        &.parallelGateway, &.exclusiveGateway, &.inclusiveGateway {
           transform: rotate(45deg);
           border-radius: 4px;
 

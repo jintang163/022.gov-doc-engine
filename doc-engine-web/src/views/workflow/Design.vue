@@ -91,6 +91,18 @@
               <template #icon><FullscreenOutlined /></template>
               重置
             </a-button>
+            <a-button @click="handleExportBpmn">
+              <template #icon><DownloadOutlined /></template>
+              导出BPMN
+            </a-button>
+            <a-button @click="handleImportBpmn">
+              <template #icon><UploadOutlined /></template>
+              导入BPMN
+            </a-button>
+            <a-button @click="handleValidate">
+              <template #icon><SafetyOutlined /></template>
+              校验
+            </a-button>
           </a-space>
         </div>
 
@@ -104,6 +116,39 @@
         </div>
       </div>
     </a-card>
+
+    <input
+      ref="bpmnFileInputRef"
+      type="file"
+      accept=".bpmn,.xml"
+      style="display: none"
+      @change="handleBpmnFileChange"
+    />
+
+    <a-modal
+      v-model:open="validationVisible"
+      title="流程校验结果"
+      :footer="null"
+    >
+      <a-result
+        v-if="validationResult"
+        status="success"
+        title="校验通过"
+        sub-title="流程设计符合规范"
+      />
+      <a-result
+        v-else
+        status="error"
+        title="校验未通过"
+        sub-title="请修复以下问题"
+      >
+        <template #extra>
+          <ul style="text-align: left; padding-left: 20px;">
+            <li v-for="(err, idx) in validationErrors" :key="idx" style="color: #ff4d4f; margin-bottom: 4px;">{{ err }}</li>
+          </ul>
+        </template>
+      </a-result>
+    </a-modal>
   </div>
 </template>
 
@@ -125,7 +170,10 @@ import {
   UserOutlined,
   TeamOutlined,
   ApartmentOutlined,
-  GatewayOutlined
+  GatewayOutlined,
+  DownloadOutlined,
+  UploadOutlined,
+  SafetyOutlined
 } from '@ant-design/icons-vue'
 import ProcessDesigner from '@/components/ProcessDesigner.vue'
 import {
@@ -150,6 +198,10 @@ const designerRef = ref<InstanceType<typeof ProcessDesigner> | null>(null)
 const saving = ref(false)
 const loading = ref(false)
 const zoomLevel = ref(100)
+const bpmnFileInputRef = ref<HTMLInputElement | null>(null)
+const validationVisible = ref(false)
+const validationErrors = ref<string[]>([])
+const validationResult = ref(false)
 
 const isEdit = computed(() => !!route.params.id)
 const processDefinitionId = computed(() => Number(route.params.id) || 0)
@@ -225,6 +277,47 @@ const handleZoomOut = () => {
 
 const handleZoomReset = () => {
   zoomLevel.value = 100
+}
+
+const handleExportBpmn = () => {
+  if (!designerRef.value) return
+  const xml = (designerRef.value as any).exportBpmnXml()
+  const blob = new Blob([xml], { type: 'application/xml' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${formData.processName || 'process'}.bpmn`
+  a.click()
+  URL.revokeObjectURL(url)
+  message.success('BPMN导出成功')
+}
+
+const handleImportBpmn = () => {
+  bpmnFileInputRef.value?.click()
+}
+
+const handleBpmnFileChange = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = (evt) => {
+    const xml = evt.target?.result as string
+    if (designerRef.value) {
+      (designerRef.value as any).importBpmnXml(xml)
+    }
+  }
+  reader.readAsText(file)
+  input.value = ''
+}
+
+const handleValidate = () => {
+  if (!designerRef.value) return
+  const result = (designerRef.value as any).validateFlow()
+  validationErrors.value = result.errors
+  validationResult.value = result.valid
+  validationVisible.value = true
 }
 
 const handleClear = () => {
