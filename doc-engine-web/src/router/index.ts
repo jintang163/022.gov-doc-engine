@@ -238,6 +238,12 @@ const routes: RouteRecordRaw[] = [
     name: 'StatTimeliness',
     component: () => import('@/views/stat/Timeliness.vue'),
     meta: { title: '办理时效统计' }
+  },
+  {
+    path: '/stat/rejection',
+    name: 'StatRejection',
+    component: () => import('@/views/stat/Rejection.vue'),
+    meta: { title: '退回热点分析' }
   }
 ]
 

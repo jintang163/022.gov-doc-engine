@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { StatOverviewVO, StatDocTypeVO, StatDocStatusVO, StatProcessVO, StatTrendVO, StatUnitVO, StatQueryDTO, StatDeptDraftVO, StatNodeDwellVO, StatCountersignCycleVO, StatTimelinessTrendVO } from '@/types/stat'
+import type { StatOverviewVO, StatDocTypeVO, StatDocStatusVO, StatProcessVO, StatTrendVO, StatUnitVO, StatQueryDTO, StatDeptDraftVO, StatNodeDwellVO, StatCountersignCycleVO, StatTimelinessTrendVO, StatRejectionOverviewVO, StatRejectionWordVO, StatRejectionReasonVO } from '@/types/stat'
 import type { Result } from '@/types/template'
 
 export const getStatOverview = (params?: StatQueryDTO) => {
@@ -77,6 +77,30 @@ export const getStatCountersignCycle = (params?: StatQueryDTO) => {
 export const getStatTimelinessTrend = (params?: StatQueryDTO) => {
   return request<Result<StatTimelinessTrendVO[]>>({
     url: '/stat/timeliness-trend',
+    method: 'get',
+    params
+  })
+}
+
+export const getStatRejectionOverview = (params?: StatQueryDTO) => {
+  return request<Result<StatRejectionOverviewVO>>({
+    url: '/stat/rejection-overview',
+    method: 'get',
+    params
+  })
+}
+
+export const getStatRejectionWords = (params?: StatQueryDTO) => {
+  return request<Result<StatRejectionWordVO[]>>({
+    url: '/stat/rejection-words',
+    method: 'get',
+    params
+  })
+}
+
+export const getStatRejectionReasons = (params?: StatQueryDTO) => {
+  return request<Result<StatRejectionReasonVO[]>>({
+    url: '/stat/rejection-reasons',
     method: 'get',
     params
   })

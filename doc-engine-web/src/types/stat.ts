@@ -110,3 +110,24 @@ export interface StatTimelinessTrendVO {
   avgCountersignMinutes: number
   completionRate: number
 }
+
+export interface StatRejectionOverviewVO {
+  totalRejectionCount: number
+  totalReturnCount: number
+  totalCount: number
+  returnRate: number
+}
+
+export interface StatRejectionWordVO {
+  word: string
+  count: number
+  weight: number
+}
+
+export interface StatRejectionReasonVO {
+  reason: string
+  count: number
+  percentage: number
+  deptId: string
+  deptName: string
+}

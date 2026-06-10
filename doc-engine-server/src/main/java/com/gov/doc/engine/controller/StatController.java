@@ -11,6 +11,9 @@ import com.gov.doc.engine.vo.StatNodeDwellVO;
 import com.gov.doc.engine.vo.StatOverviewVO;
 import com.gov.doc.engine.vo.StatProcessVO;
 import com.gov.doc.engine.vo.StatTimelinessTrendVO;
+import com.gov.doc.engine.vo.StatRejectionOverviewVO;
+import com.gov.doc.engine.vo.StatRejectionReasonVO;
+import com.gov.doc.engine.vo.StatRejectionWordVO;
 import com.gov.doc.engine.vo.StatTrendVO;
 import com.gov.doc.engine.vo.StatUnitVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +87,24 @@ public class StatController {
     @GetMapping("/timeliness-trend")
     public Result<List<StatTimelinessTrendVO>> getTimelinessTrend(StatQueryDTO queryDTO) {
         List<StatTimelinessTrendVO> list = statService.getTimelinessTrend(queryDTO);
+        return Result.success(list);
+    }
+
+    @GetMapping("/rejection-overview")
+    public Result<StatRejectionOverviewVO> getRejectionOverview(StatQueryDTO queryDTO) {
+        StatRejectionOverviewVO vo = statService.getRejectionOverview(queryDTO);
+        return Result.success(vo);
+    }
+
+    @GetMapping("/rejection-words")
+    public Result<List<StatRejectionWordVO>> getRejectionWordStats(StatQueryDTO queryDTO) {
+        List<StatRejectionWordVO> list = statService.getRejectionWordStats(queryDTO);
+        return Result.success(list);
+    }
+
+    @GetMapping("/rejection-reasons")
+    public Result<List<StatRejectionReasonVO>> getRejectionReasonStats(StatQueryDTO queryDTO) {
+        List<StatRejectionReasonVO> list = statService.getRejectionReasonStats(queryDTO);
         return Result.success(list);
     }
 }

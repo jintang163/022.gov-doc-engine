@@ -11,6 +11,9 @@ import com.gov.doc.engine.vo.StatCountersignCycleVO;
 import com.gov.doc.engine.vo.StatDeptDraftVO;
 import com.gov.doc.engine.vo.StatNodeDwellVO;
 import com.gov.doc.engine.vo.StatTimelinessTrendVO;
+import com.gov.doc.engine.vo.StatRejectionOverviewVO;
+import com.gov.doc.engine.vo.StatRejectionReasonVO;
+import com.gov.doc.engine.vo.StatRejectionWordVO;
 import com.gov.doc.engine.vo.StatTrendVO;
 import com.gov.doc.engine.vo.StatUnitVO;
 
@@ -37,4 +40,10 @@ public interface StatService extends IService<DocDocument> {
     List<StatCountersignCycleVO> getCountersignCycleStats(StatQueryDTO queryDTO);
 
     List<StatTimelinessTrendVO> getTimelinessTrend(StatQueryDTO queryDTO);
+
+    StatRejectionOverviewVO getRejectionOverview(StatQueryDTO queryDTO);
+
+    List<StatRejectionWordVO> getRejectionWordStats(StatQueryDTO queryDTO);
+
+    List<StatRejectionReasonVO> getRejectionReasonStats(StatQueryDTO queryDTO);
 }

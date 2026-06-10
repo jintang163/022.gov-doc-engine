@@ -55,6 +55,7 @@
             <template #title>📊 数据统计</template>
             <a-menu-item key="/stat/dashboard">统计总览</a-menu-item>
             <a-menu-item key="/stat/timeliness">办理时效统计</a-menu-item>
+            <a-menu-item key="/stat/rejection">退回热点分析</a-menu-item>
           </a-sub-menu>
         </a-menu>
       </div>

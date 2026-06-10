@@ -16,6 +16,9 @@ import com.gov.doc.engine.vo.StatDocTypeVO;
 import com.gov.doc.engine.vo.StatNodeDwellVO;
 import com.gov.doc.engine.vo.StatOverviewVO;
 import com.gov.doc.engine.vo.StatProcessVO;
+import com.gov.doc.engine.vo.StatRejectionOverviewVO;
+import com.gov.doc.engine.vo.StatRejectionReasonVO;
+import com.gov.doc.engine.vo.StatRejectionWordVO;
 import com.gov.doc.engine.vo.StatTimelinessTrendVO;
 import com.gov.doc.engine.vo.StatTrendVO;
 import com.gov.doc.engine.vo.StatUnitVO;
@@ -29,9 +32,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -743,6 +750,238 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
             result.add(vo);
         }
 
+        return result;
+    }
+
+    private String buildRejectionWhereClause(StatQueryDTO queryDTO, List<Object> params) {
+        StringBuilder where = new StringBuilder(" WHERE ao.deleted = 0 AND ao.approval_type IN ('reject', 'return') AND ao.approval_opinion IS NOT NULL AND ao.approval_opinion != '' ");
+
+        if (StrUtil.isNotBlank(queryDTO.getStartDate())) {
+            where.append(" AND ao.approval_time >= ? ");
+            params.add(queryDTO.getStartDate() + " 00:00:00");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getEndDate())) {
+            where.append(" AND ao.approval_time <= ? ");
+            params.add(queryDTO.getEndDate() + " 23:59:59");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getUnitCode())) {
+            where.append(" AND d.unit_code = ? ");
+            params.add(queryDTO.getUnitCode());
+        }
+        if (StrUtil.isNotBlank(queryDTO.getDocType())) {
+            where.append(" AND d.doc_type = ? ");
+            params.add(queryDTO.getDocType());
+        }
+        return where.toString();
+    }
+
+    @Override
+    public StatRejectionOverviewVO getRejectionOverview(StatQueryDTO queryDTO) {
+        StatRejectionOverviewVO vo = new StatRejectionOverviewVO();
+        List<Object> params = new ArrayList<>();
+        String where = buildRejectionWhereClause(queryDTO, params);
+
+        String sql = "SELECT " +
+                "SUM(CASE WHEN ao.approval_type = 'return' THEN 1 ELSE 0 END) as return_count, " +
+                "SUM(CASE WHEN ao.approval_type = 'reject' THEN 1 ELSE 0 END) as reject_count, " +
+                "COUNT(ao.id) as total_count " +
+                "FROM wf_approval_opinion ao " +
+                "LEFT JOIN doc_document d ON ao.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                where;
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
+        if (!rows.isEmpty()) {
+            Map<String, Object> row = rows.get(0);
+            vo.setTotalReturnCount(row.get("return_count") != null ? ((Number) row.get("return_count")).longValue() : 0L);
+            vo.setTotalRejectionCount(row.get("reject_count") != null ? ((Number) row.get("reject_count")).longValue() : 0L);
+            vo.setTotalCount(row.get("total_count") != null ? ((Number) row.get("total_count")).longValue() : 0L);
+        }
+
+        long totalTaskCount = 0;
+        List<Object> totalParams = new ArrayList<>();
+        StringBuilder totalWhere = new StringBuilder(" WHERE ao.deleted = 0 AND ao.approval_opinion IS NOT NULL ");
+        if (StrUtil.isNotBlank(queryDTO.getStartDate())) {
+            totalWhere.append(" AND ao.approval_time >= ? ");
+            totalParams.add(queryDTO.getStartDate() + " 00:00:00");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getEndDate())) {
+            totalWhere.append(" AND ao.approval_time <= ? ");
+            totalParams.add(queryDTO.getEndDate() + " 23:59:59");
+        }
+        String totalSql = "SELECT COUNT(ao.id) as cnt FROM wf_approval_opinion ao " +
+                "LEFT JOIN doc_document d ON ao.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                totalWhere;
+        List<Map<String, Object>> totalRows = jdbcTemplate.queryForList(totalSql, totalParams.toArray());
+        if (!totalRows.isEmpty() && totalRows.get(0).get("cnt") != null) {
+            totalTaskCount = ((Number) totalRows.get(0).get("cnt")).longValue();
+        }
+        if (totalTaskCount > 0) {
+            vo.setReturnRate(Math.round(vo.getTotalCount() * 10000.0 / totalTaskCount) / 100.0);
+        } else {
+            vo.setReturnRate(0.0);
+        }
+
+        return vo;
+    }
+
+    private static final List<String> STOP_WORDS = Arrays.asList(
+            "的", "了", "和", "是", "在", "我", "有", "就", "不", "人", "都", "一", "一个",
+            "上", "也", "很", "到", "说", "要", "去", "你", "会", "着", "没有", "看", "好",
+            "自己", "这", "那", "他", "她", "它", "们", "什么", "怎么", "这个", "那个",
+            "请", "把", "被", "给", "让", "对", "与", "及", "或", "但", "而", "如", "因",
+            "为", "以", "于", "从", "向", "由", "等", "等等", "啊", "吧", "呢", "吗",
+            "哦", "嗯", "哈", "呀", "可以", "已经", "可能", "应该", "需要", "必须",
+            "是否", "不是", "不能", "不会", "没有", "只是", "还有", "以及", "但是",
+            "如果", "虽然", "所以", "因此", "然后", "之后", "以前", "现在", "同时",
+            "问题", "内容", "材料", "情况", "时候", "地方", "工作", "相关", "进行"
+    );
+
+    @Override
+    public List<StatRejectionWordVO> getRejectionWordStats(StatQueryDTO queryDTO) {
+        List<StatRejectionWordVO> result = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        String where = buildRejectionWhereClause(queryDTO, params);
+
+        String sql = "SELECT ao.approval_opinion as opinion FROM wf_approval_opinion ao " +
+                "LEFT JOIN doc_document d ON ao.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                where;
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
+
+        Map<String, Long> wordCountMap = new LinkedHashMap<>();
+        for (Map<String, Object> row : rows) {
+            String opinion = row.get("opinion") != null ? row.get("opinion").toString() : "";
+            if (StrUtil.isBlank(opinion)) continue;
+
+            String cleaned = opinion.replaceAll("[\\pP\\pS\\s\\d]+", " ");
+            List<String> words = new ArrayList<>();
+
+            for (int i = 0; i < cleaned.length() - 1; i++) {
+                String bigram = cleaned.substring(i, i + 2).trim();
+                if (bigram.length() == 2 && !STOP_WORDS.contains(bigram)
+                        && !bigram.matches(".*\\d.*") && !bigram.matches(".*[a-zA-Z].*")) {
+                    words.add(bigram);
+                }
+            }
+
+            for (int i = 0; i < cleaned.length() - 2; i++) {
+                String trigram = cleaned.substring(i, i + 3).trim();
+                if (trigram.length() == 3 && !STOP_WORDS.contains(trigram)
+                        && !trigram.matches(".*\\d.*") && !trigram.matches(".*[a-zA-Z].*")) {
+                    words.add(trigram);
+                }
+            }
+
+            for (int i = 0; i < cleaned.length() - 3; i++) {
+                String fourgram = cleaned.substring(i, i + 4).trim();
+                if (fourgram.length() == 4 && !STOP_WORDS.contains(fourgram)
+                        && !fourgram.matches(".*\\d.*") && !fourgram.matches(".*[a-zA-Z].*")) {
+                    words.add(fourgram);
+                }
+            }
+
+            for (String w : words) {
+                wordCountMap.merge(w, 1L, Long::sum);
+            }
+        }
+
+        long maxCount = wordCountMap.values().stream().max(Long::compareTo).orElse(1L);
+
+        List<Map.Entry<String, Long>> sortedEntries = wordCountMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(100)
+                .collect(Collectors.toList());
+
+        for (Map.Entry<String, Long> entry : sortedEntries) {
+            StatRejectionWordVO vo = new StatRejectionWordVO();
+            vo.setWord(entry.getKey());
+            vo.setCount(entry.getValue());
+            vo.setWeight(Math.round(entry.getValue() * 10000.0 / maxCount) / 100.0);
+            result.add(vo);
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<StatRejectionReasonVO> getRejectionReasonStats(StatQueryDTO queryDTO) {
+        List<StatRejectionReasonVO> result = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        String where = buildRejectionWhereClause(queryDTO, params);
+
+        String sql = "SELECT ao.approver_dept_id as dept_id, ao.approver_dept_name as dept_name, ao.approval_opinion as opinion " +
+                "FROM wf_approval_opinion ao " +
+                "LEFT JOIN doc_document d ON ao.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                where;
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
+
+        Map<String, Long> reasonCountMap = new LinkedHashMap<>();
+        Map<String, String> reasonDeptMap = new LinkedHashMap<>();
+        Map<String, String> reasonDeptIdMap = new LinkedHashMap<>();
+
+        List<String> reasonKeywords = Arrays.asList(
+                "格式不规范", "格式错误", "格式问题", "格式不正确",
+                "内容不全", "内容不完整", "内容缺失", "内容不完善",
+                "表述不清", "表述不清晰", "描述不清", "描述不准确",
+                "政策不符", "不符合政策", "违反规定", "不符合规定", "不符合要求",
+                "附件缺失", "缺少附件", "附件不全",
+                "签字不全", "缺少签字", "未签字", "未盖章", "缺少盖章",
+                "日期错误", "时间不对",
+                "文号错误", "字号错误",
+                "逻辑错误", "逻辑混乱",
+                "文字错误", "错别字", "用词不当",
+                "材料不全", "材料不足", "材料不完整",
+                "需补正", "需补充", "需修改", "请补充", "请修改", "请完善",
+                "退回修改", "退回补正", "不予受理", "驳回申请"
+        );
+
+        for (Map<String, Object> row : rows) {
+            String opinion = row.get("opinion") != null ? row.get("opinion").toString() : "";
+            String deptId = row.get("dept_id") != null ? row.get("dept_id").toString() : "";
+            String deptName = row.get("dept_name") != null ? row.get("dept_name").toString() : "";
+
+            if (StrUtil.isBlank(opinion)) continue;
+
+            boolean matched = false;
+            for (String keyword : reasonKeywords) {
+                if (opinion.contains(keyword)) {
+                    reasonCountMap.merge(keyword, 1L, Long::sum);
+                    reasonDeptMap.putIfAbsent(keyword, deptName);
+                    reasonDeptIdMap.putIfAbsent(keyword, deptId);
+                    matched = true;
+                }
+            }
+            if (!matched) {
+                String trimmed = opinion.length() > 15 ? opinion.substring(0, 15) + "..." : opinion;
+                reasonCountMap.merge(trimmed, 1L, Long::sum);
+                reasonDeptMap.putIfAbsent(trimmed, deptName);
+                reasonDeptIdMap.putIfAbsent(trimmed, deptId);
+            }
+        }
+
+        long totalCount = reasonCountMap.values().stream().mapToLong(Long::longValue).sum();
+
+        List<Map.Entry<String, Long>> sortedEntries = reasonCountMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(50)
+                .collect(Collectors.toList());
+
+        for (Map.Entry<String, Long> entry : sortedEntries) {
+            StatRejectionReasonVO vo = new StatRejectionReasonVO();
+            vo.setReason(entry.getKey());
+            vo.setCount(entry.getValue());
+            vo.setDeptId(reasonDeptIdMap.getOrDefault(entry.getKey(), ""));
+            vo.setDeptName(reasonDeptMap.getOrDefault(entry.getKey(), "未知部门"));
+            if (totalCount > 0) {
+                vo.setPercentage(Math.round(entry.getValue() * 10000.0 / totalCount) / 100.0);
+            } else {
+                vo.setPercentage(0.0);
+            }
+            result.add(vo);
+        }
+
+        result.sort(Comparator.comparing(StatRejectionReasonVO::getCount).reversed());
         return result;
     }
 }
