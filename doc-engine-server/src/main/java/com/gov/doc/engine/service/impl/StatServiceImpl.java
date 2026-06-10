@@ -9,10 +9,14 @@ import com.gov.doc.engine.mapper.DocDocumentMapper;
 import com.gov.doc.engine.mapper.WfProcessDefinitionMapper;
 import com.gov.doc.engine.mapper.WfProcessInstanceMapper;
 import com.gov.doc.engine.service.StatService;
+import com.gov.doc.engine.vo.StatCountersignCycleVO;
+import com.gov.doc.engine.vo.StatDeptDraftVO;
 import com.gov.doc.engine.vo.StatDocStatusVO;
 import com.gov.doc.engine.vo.StatDocTypeVO;
+import com.gov.doc.engine.vo.StatNodeDwellVO;
 import com.gov.doc.engine.vo.StatOverviewVO;
 import com.gov.doc.engine.vo.StatProcessVO;
+import com.gov.doc.engine.vo.StatTimelinessTrendVO;
 import com.gov.doc.engine.vo.StatTrendVO;
 import com.gov.doc.engine.vo.StatUnitVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -448,6 +452,288 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
                 vo.setAvgDurationMinutes(0L);
             }
 
+            result.add(vo);
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<StatDeptDraftVO> getDeptDraftStats(StatQueryDTO queryDTO) {
+        List<StatDeptDraftVO> result = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        StringBuilder where = new StringBuilder(" WHERE d.deleted = 0 AND d.status != 'draft' ");
+
+        if (StrUtil.isNotBlank(queryDTO.getStartDate())) {
+            where.append(" AND d.create_time >= ? ");
+            params.add(queryDTO.getStartDate() + " 00:00:00");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getEndDate())) {
+            where.append(" AND d.create_time <= ? ");
+            params.add(queryDTO.getEndDate() + " 23:59:59");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getUnitCode())) {
+            where.append(" AND d.unit_code = ? ");
+            params.add(queryDTO.getUnitCode());
+        }
+        if (StrUtil.isNotBlank(queryDTO.getDocType())) {
+            where.append(" AND d.doc_type = ? ");
+            params.add(queryDTO.getDocType());
+        }
+
+        String sql = "SELECT d.creator_dept_id as dept_id, d.creator_dept_name as dept_name, " +
+                "COUNT(d.id) as doc_count, " +
+                "AVG(TIMESTAMPDIFF(MINUTE, d.create_time, h.first_enter_time)) as avg_draft_minutes, " +
+                "MIN(TIMESTAMPDIFF(MINUTE, d.create_time, h.first_enter_time)) as min_draft_minutes, " +
+                "MAX(TIMESTAMPDIFF(MINUTE, d.create_time, h.first_enter_time)) as max_draft_minutes " +
+                "FROM doc_document d " +
+                "LEFT JOIN ( " +
+                "  SELECT pi.business_key, MIN(ph.enter_time) as first_enter_time " +
+                "  FROM wf_process_history ph " +
+                "  JOIN wf_process_instance pi ON ph.process_instance_id = pi.id AND pi.deleted = 0 " +
+                "  WHERE ph.deleted = 0 AND ph.node_type = 'userTask' AND ph.enter_time IS NOT NULL " +
+                "  GROUP BY pi.business_key " +
+                ") h ON d.id = CAST(h.business_key AS UNSIGNED) " +
+                where.toString() +
+                " GROUP BY d.creator_dept_id, d.creator_dept_name " +
+                " ORDER BY avg_draft_minutes DESC";
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
+        for (Map<String, Object> row : rows) {
+            StatDeptDraftVO vo = new StatDeptDraftVO();
+            vo.setDeptId(row.get("dept_id") != null ? row.get("dept_id").toString() : "");
+            vo.setDeptName(row.get("dept_name") != null ? row.get("dept_name").toString() : "未知部门");
+            vo.setDocCount(row.get("doc_count") != null ? ((Number) row.get("doc_count")).longValue() : 0L);
+            vo.setAvgDraftMinutes(row.get("avg_draft_minutes") != null ? ((Number) row.get("avg_draft_minutes")).longValue() : 0L);
+            vo.setAvgDraftText(formatDuration(vo.getAvgDraftMinutes() * 60 * 1000));
+            vo.setMinDraftMinutes(row.get("min_draft_minutes") != null ? ((Number) row.get("min_draft_minutes")).longValue() : 0L);
+            vo.setMinDraftText(formatDuration(vo.getMinDraftMinutes() * 60 * 1000));
+            vo.setMaxDraftMinutes(row.get("max_draft_minutes") != null ? ((Number) row.get("max_draft_minutes")).longValue() : 0L);
+            vo.setMaxDraftText(formatDuration(vo.getMaxDraftMinutes() * 60 * 1000));
+            result.add(vo);
+        }
+        return result;
+    }
+
+    @Override
+    public List<StatNodeDwellVO> getNodeDwellStats(StatQueryDTO queryDTO) {
+        List<StatNodeDwellVO> result = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        StringBuilder where = new StringBuilder(" WHERE ph.deleted = 0 AND ph.duration IS NOT NULL AND ph.duration > 0 ");
+
+        if (StrUtil.isNotBlank(queryDTO.getStartDate())) {
+            where.append(" AND ph.enter_time >= ? ");
+            params.add(queryDTO.getStartDate() + " 00:00:00");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getEndDate())) {
+            where.append(" AND ph.leave_time <= ? ");
+            params.add(queryDTO.getEndDate() + " 23:59:59");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getProcessType())) {
+            where.append(" AND pi.process_def_id IN (SELECT id FROM wf_process_definition WHERE process_type = ? AND deleted = 0) ");
+            params.add(queryDTO.getProcessType());
+        }
+
+        String sql = "SELECT ph.node_id, ph.node_name, ph.node_type, " +
+                "su.post_id, sp.post_name, " +
+                "COUNT(ph.id) as task_count, " +
+                "AVG(ph.duration) as avg_dwell, " +
+                "MIN(ph.duration) as min_dwell, " +
+                "MAX(ph.duration) as max_dwell " +
+                "FROM wf_process_history ph " +
+                "JOIN wf_process_instance pi ON ph.process_instance_id = pi.id AND pi.deleted = 0 " +
+                "LEFT JOIN sys_user su ON ph.operator_id = su.user_code AND su.deleted = 0 " +
+                "LEFT JOIN sys_post sp ON su.post_id = sp.id AND sp.deleted = 0 " +
+                where.toString() +
+                " GROUP BY ph.node_id, ph.node_name, ph.node_type, su.post_id, sp.post_name " +
+                " ORDER BY avg_dwell DESC";
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
+        for (Map<String, Object> row : rows) {
+            StatNodeDwellVO vo = new StatNodeDwellVO();
+            vo.setNodeId(row.get("node_id") != null ? row.get("node_id").toString() : "");
+            vo.setNodeName(row.get("node_name") != null ? row.get("node_name").toString() : "");
+            vo.setNodeType(row.get("node_type") != null ? row.get("node_type").toString() : "");
+            vo.setPostId(row.get("post_id") != null ? row.get("post_id").toString() : "");
+            vo.setPostName(row.get("post_name") != null ? row.get("post_name").toString() : "未分配岗位");
+            vo.setTaskCount(row.get("task_count") != null ? ((Number) row.get("task_count")).longValue() : 0L);
+
+            long avgMs = row.get("avg_dwell") != null ? ((Number) row.get("avg_dwell")).longValue() : 0L;
+            long minMs = row.get("min_dwell") != null ? ((Number) row.get("min_dwell")).longValue() : 0L;
+            long maxMs = row.get("max_dwell") != null ? ((Number) row.get("max_dwell")).longValue() : 0L;
+
+            vo.setAvgDwellMinutes(avgMs / (60 * 1000));
+            vo.setAvgDwellText(formatDuration(avgMs));
+            vo.setMinDwellMinutes(minMs / (60 * 1000));
+            vo.setMinDwellText(formatDuration(minMs));
+            vo.setMaxDwellMinutes(maxMs / (60 * 1000));
+            vo.setMaxDwellText(formatDuration(maxMs));
+
+            double withinRate = 0.0;
+            long standardMinutes = 1440;
+            if (vo.getAvgDwellMinutes() > 0 && vo.getAvgDwellMinutes() <= standardMinutes) {
+                withinRate = Math.round(vo.getAvgDwellMinutes() * 10000.0 / standardMinutes) / 100.0;
+            } else if (vo.getAvgDwellMinutes() > standardMinutes) {
+                withinRate = 0.0;
+            }
+            vo.setWithinRate(withinRate);
+
+            result.add(vo);
+        }
+        return result;
+    }
+
+    @Override
+    public List<StatCountersignCycleVO> getCountersignCycleStats(StatQueryDTO queryDTO) {
+        List<StatCountersignCycleVO> result = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        StringBuilder where = new StringBuilder(" WHERE cs.deleted = 0 AND cs.status = 'completed' AND cs.start_time IS NOT NULL AND cs.end_time IS NOT NULL ");
+
+        if (StrUtil.isNotBlank(queryDTO.getStartDate())) {
+            where.append(" AND cs.start_time >= ? ");
+            params.add(queryDTO.getStartDate() + " 00:00:00");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getEndDate())) {
+            where.append(" AND cs.end_time <= ? ");
+            params.add(queryDTO.getEndDate() + " 23:59:59");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getUnitCode())) {
+            where.append(" AND d.unit_code = ? ");
+            params.add(queryDTO.getUnitCode());
+        }
+        if (StrUtil.isNotBlank(queryDTO.getDocType())) {
+            where.append(" AND d.doc_type = ? ");
+            params.add(queryDTO.getDocType());
+        }
+
+        String sql = "SELECT d.doc_type, " +
+                "COUNT(cs.id) as countersign_count, " +
+                "AVG(TIMESTAMPDIFF(MINUTE, cs.start_time, cs.end_time)) as avg_cycle_minutes, " +
+                "MIN(TIMESTAMPDIFF(MINUTE, cs.start_time, cs.end_time)) as min_cycle_minutes, " +
+                "MAX(TIMESTAMPDIFF(MINUTE, cs.start_time, cs.end_time)) as max_cycle_minutes " +
+                "FROM wf_countersign cs " +
+                "LEFT JOIN doc_document d ON cs.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                where.toString() +
+                " GROUP BY d.doc_type " +
+                " ORDER BY avg_cycle_minutes DESC";
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
+        for (Map<String, Object> row : rows) {
+            StatCountersignCycleVO vo = new StatCountersignCycleVO();
+            String docType = row.get("doc_type") != null ? row.get("doc_type").toString() : "未知";
+            vo.setDocType(docType);
+            vo.setDocTypeName(DOC_TYPE_NAME_MAP.getOrDefault(docType, docType));
+            vo.setCountersignCount(row.get("countersign_count") != null ? ((Number) row.get("countersign_count")).longValue() : 0L);
+            vo.setAvgCycleMinutes(row.get("avg_cycle_minutes") != null ? ((Number) row.get("avg_cycle_minutes")).longValue() : 0L);
+            vo.setAvgCycleText(formatDuration(vo.getAvgCycleMinutes() * 60 * 1000));
+            vo.setMinCycleMinutes(row.get("min_cycle_minutes") != null ? ((Number) row.get("min_cycle_minutes")).longValue() : 0L);
+            vo.setMinCycleText(formatDuration(vo.getMinCycleMinutes() * 60 * 1000));
+            vo.setMaxCycleMinutes(row.get("max_cycle_minutes") != null ? ((Number) row.get("max_cycle_minutes")).longValue() : 0L);
+            vo.setMaxCycleText(formatDuration(vo.getMaxCycleMinutes() * 60 * 1000));
+
+            double withinRate = 0.0;
+            long standardMinutes = 3 * 24 * 60;
+            if (vo.getAvgCycleMinutes() > 0 && vo.getAvgCycleMinutes() <= standardMinutes) {
+                withinRate = Math.round((standardMinutes - vo.getAvgCycleMinutes()) * 10000.0 / standardMinutes) / 100.0;
+            }
+            vo.setWithinRate(withinRate);
+
+            result.add(vo);
+        }
+        return result;
+    }
+
+    @Override
+    public List<StatTimelinessTrendVO> getTimelinessTrend(StatQueryDTO queryDTO) {
+        List<StatTimelinessTrendVO> result = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        StringBuilder where = new StringBuilder(" WHERE d.deleted = 0 ");
+
+        if (StrUtil.isNotBlank(queryDTO.getStartDate())) {
+            where.append(" AND d.create_time >= ? ");
+            params.add(queryDTO.getStartDate() + " 00:00:00");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getEndDate())) {
+            where.append(" AND d.create_time <= ? ");
+            params.add(queryDTO.getEndDate() + " 23:59:59");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getUnitCode())) {
+            where.append(" AND d.unit_code = ? ");
+            params.add(queryDTO.getUnitCode());
+        }
+        if (StrUtil.isNotBlank(queryDTO.getDocType())) {
+            where.append(" AND d.doc_type = ? ");
+            params.add(queryDTO.getDocType());
+        }
+
+        String sql = "SELECT DATE(d.create_time) as date, " +
+                "AVG(TIMESTAMPDIFF(MINUTE, d.create_time, h.first_enter_time)) as avg_draft_minutes, " +
+                "SUM(CASE WHEN d.status IN ('archived', 'signed') THEN 1 ELSE 0 END) * 100.0 / COUNT(d.id) as completion_rate " +
+                "FROM doc_document d " +
+                "LEFT JOIN ( " +
+                "  SELECT pi.business_key, MIN(ph.enter_time) as first_enter_time " +
+                "  FROM wf_process_history ph " +
+                "  JOIN wf_process_instance pi ON ph.process_instance_id = pi.id AND pi.deleted = 0 " +
+                "  WHERE ph.deleted = 0 AND ph.node_type = 'userTask' AND ph.enter_time IS NOT NULL " +
+                "  GROUP BY pi.business_key " +
+                ") h ON d.id = CAST(h.business_key AS UNSIGNED) " +
+                where.toString() +
+                " GROUP BY DATE(d.create_time) " +
+                " ORDER BY date ASC";
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
+
+        List<Object> dwellParams = new ArrayList<>();
+        StringBuilder dwellWhere = new StringBuilder(" WHERE ph.deleted = 0 AND ph.duration IS NOT NULL AND ph.duration > 0 ");
+        if (StrUtil.isNotBlank(queryDTO.getStartDate())) {
+            dwellWhere.append(" AND ph.enter_time >= ? ");
+            dwellParams.add(queryDTO.getStartDate() + " 00:00:00");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getEndDate())) {
+            dwellWhere.append(" AND ph.leave_time <= ? ");
+            dwellParams.add(queryDTO.getEndDate() + " 23:59:59");
+        }
+        String dwellSql = "SELECT DATE(ph.enter_time) as date, AVG(ph.duration / (60 * 1000)) as avg_dwell_minutes " +
+                "FROM wf_process_history ph " +
+                dwellWhere.toString() +
+                " GROUP BY DATE(ph.enter_time)";
+        List<Map<String, Object>> dwellRows = jdbcTemplate.queryForList(dwellSql, dwellParams.toArray());
+        Map<String, Long> dwellMap = new HashMap<>();
+        for (Map<String, Object> row : dwellRows) {
+            if (row.get("avg_dwell_minutes") != null) {
+                dwellMap.put(row.get("date").toString(), ((Number) row.get("avg_dwell_minutes")).longValue());
+            }
+        }
+
+        List<Object> csParams = new ArrayList<>();
+        StringBuilder csWhere = new StringBuilder(" WHERE cs.deleted = 0 AND cs.status = 'completed' AND cs.start_time IS NOT NULL AND cs.end_time IS NOT NULL ");
+        if (StrUtil.isNotBlank(queryDTO.getStartDate())) {
+            csWhere.append(" AND cs.start_time >= ? ");
+            csParams.add(queryDTO.getStartDate() + " 00:00:00");
+        }
+        if (StrUtil.isNotBlank(queryDTO.getEndDate())) {
+            csWhere.append(" AND cs.end_time <= ? ");
+            csParams.add(queryDTO.getEndDate() + " 23:59:59");
+        }
+        String csSql = "SELECT DATE(cs.start_time) as date, AVG(TIMESTAMPDIFF(MINUTE, cs.start_time, cs.end_time)) as avg_cs_minutes " +
+                "FROM wf_countersign cs " +
+                csWhere.toString() +
+                " GROUP BY DATE(cs.start_time)";
+        List<Map<String, Object>> csRows = jdbcTemplate.queryForList(csSql, csParams.toArray());
+        Map<String, Long> csMap = new HashMap<>();
+        for (Map<String, Object> row : csRows) {
+            if (row.get("avg_cs_minutes") != null) {
+                csMap.put(row.get("date").toString(), ((Number) row.get("avg_cs_minutes")).longValue());
+            }
+        }
+
+        for (Map<String, Object> row : rows) {
+            StatTimelinessTrendVO vo = new StatTimelinessTrendVO();
+            vo.setDate(row.get("date").toString());
+            vo.setAvgDraftMinutes(row.get("avg_draft_minutes") != null ? ((Number) row.get("avg_draft_minutes")).longValue() : 0L);
+            vo.setAvgDwellMinutes(dwellMap.getOrDefault(vo.getDate(), 0L));
+            vo.setAvgCountersignMinutes(csMap.getOrDefault(vo.getDate(), 0L));
+            vo.setCompletionRate(row.get("completion_rate") != null ? Math.round(((Number) row.get("completion_rate")).doubleValue() * 100) / 100.0 : 0.0);
             result.add(vo);
         }
 

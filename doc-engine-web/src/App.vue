@@ -51,7 +51,11 @@
             <a-menu-item key="/security/audit-log">审计日志</a-menu-item>
             <a-menu-item key="/security/integrity">完整性验证</a-menu-item>
           </a-sub-menu>
-          <a-menu-item key="/stat/dashboard">📊 数据统计</a-menu-item>
+          <a-sub-menu key="stat">
+            <template #title>📊 数据统计</template>
+            <a-menu-item key="/stat/dashboard">统计总览</a-menu-item>
+            <a-menu-item key="/stat/timeliness">办理时效统计</a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </div>
     </a-layout-header>
@@ -89,6 +93,8 @@ watch(
       openKeys.value = ['incoming']
     } else if (path.startsWith('/security')) {
       openKeys.value = ['security']
+    } else if (path.startsWith('/stat')) {
+      openKeys.value = ['stat']
     }
   },
   { immediate: true }

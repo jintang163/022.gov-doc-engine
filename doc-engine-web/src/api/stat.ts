@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { StatOverviewVO, StatDocTypeVO, StatDocStatusVO, StatProcessVO, StatTrendVO, StatUnitVO, StatQueryDTO } from '@/types/stat'
+import type { StatOverviewVO, StatDocTypeVO, StatDocStatusVO, StatProcessVO, StatTrendVO, StatUnitVO, StatQueryDTO, StatDeptDraftVO, StatNodeDwellVO, StatCountersignCycleVO, StatTimelinessTrendVO } from '@/types/stat'
 import type { Result } from '@/types/template'
 
 export const getStatOverview = (params?: StatQueryDTO) => {
@@ -45,6 +45,38 @@ export const getStatTrend = (params?: StatQueryDTO) => {
 export const getStatUnit = (params?: StatQueryDTO) => {
   return request<Result<StatUnitVO[]>>({
     url: '/stat/unit',
+    method: 'get',
+    params
+  })
+}
+
+export const getStatDeptDraft = (params?: StatQueryDTO) => {
+  return request<Result<StatDeptDraftVO[]>>({
+    url: '/stat/dept-draft',
+    method: 'get',
+    params
+  })
+}
+
+export const getStatNodeDwell = (params?: StatQueryDTO) => {
+  return request<Result<StatNodeDwellVO[]>>({
+    url: '/stat/node-dwell',
+    method: 'get',
+    params
+  })
+}
+
+export const getStatCountersignCycle = (params?: StatQueryDTO) => {
+  return request<Result<StatCountersignCycleVO[]>>({
+    url: '/stat/countersign-cycle',
+    method: 'get',
+    params
+  })
+}
+
+export const getStatTimelinessTrend = (params?: StatQueryDTO) => {
+  return request<Result<StatTimelinessTrendVO[]>>({
+    url: '/stat/timeliness-trend',
     method: 'get',
     params
   })

@@ -232,6 +232,12 @@ const routes: RouteRecordRaw[] = [
     name: 'StatDashboard',
     component: () => import('@/views/stat/Dashboard.vue'),
     meta: { title: '数据统计' }
+  },
+  {
+    path: '/stat/timeliness',
+    name: 'StatTimeliness',
+    component: () => import('@/views/stat/Timeliness.vue'),
+    meta: { title: '办理时效统计' }
   }
 ]
 

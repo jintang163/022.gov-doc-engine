@@ -3,10 +3,14 @@ package com.gov.doc.engine.controller;
 import com.gov.doc.engine.common.Result;
 import com.gov.doc.engine.dto.StatQueryDTO;
 import com.gov.doc.engine.service.StatService;
+import com.gov.doc.engine.vo.StatCountersignCycleVO;
+import com.gov.doc.engine.vo.StatDeptDraftVO;
 import com.gov.doc.engine.vo.StatDocStatusVO;
 import com.gov.doc.engine.vo.StatDocTypeVO;
+import com.gov.doc.engine.vo.StatNodeDwellVO;
 import com.gov.doc.engine.vo.StatOverviewVO;
 import com.gov.doc.engine.vo.StatProcessVO;
+import com.gov.doc.engine.vo.StatTimelinessTrendVO;
 import com.gov.doc.engine.vo.StatTrendVO;
 import com.gov.doc.engine.vo.StatUnitVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +60,30 @@ public class StatController {
     @GetMapping("/unit")
     public Result<List<StatUnitVO>> getUnitStats(StatQueryDTO queryDTO) {
         List<StatUnitVO> list = statService.getUnitStats(queryDTO);
+        return Result.success(list);
+    }
+
+    @GetMapping("/dept-draft")
+    public Result<List<StatDeptDraftVO>> getDeptDraftStats(StatQueryDTO queryDTO) {
+        List<StatDeptDraftVO> list = statService.getDeptDraftStats(queryDTO);
+        return Result.success(list);
+    }
+
+    @GetMapping("/node-dwell")
+    public Result<List<StatNodeDwellVO>> getNodeDwellStats(StatQueryDTO queryDTO) {
+        List<StatNodeDwellVO> list = statService.getNodeDwellStats(queryDTO);
+        return Result.success(list);
+    }
+
+    @GetMapping("/countersign-cycle")
+    public Result<List<StatCountersignCycleVO>> getCountersignCycleStats(StatQueryDTO queryDTO) {
+        List<StatCountersignCycleVO> list = statService.getCountersignCycleStats(queryDTO);
+        return Result.success(list);
+    }
+
+    @GetMapping("/timeliness-trend")
+    public Result<List<StatTimelinessTrendVO>> getTimelinessTrend(StatQueryDTO queryDTO) {
+        List<StatTimelinessTrendVO> list = statService.getTimelinessTrend(queryDTO);
         return Result.success(list);
     }
 }

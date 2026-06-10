@@ -61,3 +61,52 @@ export interface StatUnitVO {
   completionRate: number
   avgDurationMinutes: number
 }
+
+export interface StatDeptDraftVO {
+  deptId: string
+  deptName: string
+  docCount: number
+  avgDraftMinutes: number
+  avgDraftText: string
+  minDraftMinutes: number
+  minDraftText: string
+  maxDraftMinutes: number
+  maxDraftText: string
+}
+
+export interface StatNodeDwellVO {
+  nodeId: string
+  nodeName: string
+  nodeType: string
+  postId: string
+  postName: string
+  taskCount: number
+  avgDwellMinutes: number
+  avgDwellText: string
+  minDwellMinutes: number
+  minDwellText: string
+  maxDwellMinutes: number
+  maxDwellText: string
+  withinRate: number
+}
+
+export interface StatCountersignCycleVO {
+  docType: string
+  docTypeName: string
+  countersignCount: number
+  avgCycleMinutes: number
+  avgCycleText: string
+  minCycleMinutes: number
+  minCycleText: string
+  maxCycleMinutes: number
+  maxCycleText: string
+  withinRate: number
+}
+
+export interface StatTimelinessTrendVO {
+  date: string
+  avgDraftMinutes: number
+  avgDwellMinutes: number
+  avgCountersignMinutes: number
+  completionRate: number
+}

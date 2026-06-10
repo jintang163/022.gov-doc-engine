@@ -7,6 +7,10 @@ import com.gov.doc.engine.vo.StatDocStatusVO;
 import com.gov.doc.engine.vo.StatDocTypeVO;
 import com.gov.doc.engine.vo.StatOverviewVO;
 import com.gov.doc.engine.vo.StatProcessVO;
+import com.gov.doc.engine.vo.StatCountersignCycleVO;
+import com.gov.doc.engine.vo.StatDeptDraftVO;
+import com.gov.doc.engine.vo.StatNodeDwellVO;
+import com.gov.doc.engine.vo.StatTimelinessTrendVO;
 import com.gov.doc.engine.vo.StatTrendVO;
 import com.gov.doc.engine.vo.StatUnitVO;
 
@@ -25,4 +29,12 @@ public interface StatService extends IService<DocDocument> {
     List<StatTrendVO> getTrendStats(StatQueryDTO queryDTO);
 
     List<StatUnitVO> getUnitStats(StatQueryDTO queryDTO);
+
+    List<StatDeptDraftVO> getDeptDraftStats(StatQueryDTO queryDTO);
+
+    List<StatNodeDwellVO> getNodeDwellStats(StatQueryDTO queryDTO);
+
+    List<StatCountersignCycleVO> getCountersignCycleStats(StatQueryDTO queryDTO);
+
+    List<StatTimelinessTrendVO> getTimelinessTrend(StatQueryDTO queryDTO);
 }
