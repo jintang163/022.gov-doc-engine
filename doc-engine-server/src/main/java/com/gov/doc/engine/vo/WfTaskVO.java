@@ -13,6 +13,7 @@ public class WfTaskVO implements Serializable {
 
     private Long id;
     private String taskNo;
+    private String camundaTaskId;
     private Long processInstanceId;
     private Long processDefId;
     private String nodeId;

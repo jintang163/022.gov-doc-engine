@@ -577,6 +577,7 @@ const BPMN_NS = 'http://www.omg.org/spec/BPMN/20100524/MODEL'
 const BPMNDI_NS = 'http://www.omg.org/spec/BPMN/20100524/DI'
 const DC_NS = 'http://www.omg.org/spec/DD/20100524/DC'
 const XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
+const CAMUNDA_NS = 'http://camunda.org/schema/1.0/bpmn'
 
 const nodeTypeToBpmnElement = (type: NodeType): string => {
   const map: Record<NodeType, string> = {
@@ -616,8 +617,8 @@ const escapeXml = (str: string): string => {
 const exportBpmnXml = (): string => {
   const processId = 'process_' + Date.now()
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-  xml += `<definitions xmlns="${BPMN_NS}" xmlns:bpmndi="${BPMNDI_NS}" xmlns:omgdc="${DC_NS}" xmlns:xsi="${XSI_NS}" targetNamespace="http://example.com/bpmn">\n`
-  xml += `  <process id="${escapeXml(processId)}" isExecutable="true">\n`
+  xml += `<definitions xmlns="${BPMN_NS}" xmlns:camunda="${CAMUNDA_NS}" xmlns:bpmndi="${BPMNDI_NS}" xmlns:omgdc="${DC_NS}" xmlns:xsi="${XSI_NS}" targetNamespace="http://gov.doc.engine/bpmn">\n`
+  xml += `  <process id="${escapeXml(processId)}" name="GovDocProcess" isExecutable="true">\n`
 
   for (const node of nodes.value) {
     const elementName = nodeTypeToBpmnElement(node.type)
@@ -626,8 +627,17 @@ const exportBpmnXml = (): string => {
 
     if (node.type === 'countersign') {
       xml += `    <${elementName} id="${nodeId}" name="${nodeName}">\n`
-      xml += `      <multiInstanceLoopCharacteristics isSequential="false"/>\n`
+      xml += `      <multiInstanceLoopCharacteristics isSequential="false" camunda:collection="\${countersignUsers_${nodeId}}" camunda:variableName="assignee">\n`
+      xml += `        <completionCondition>\${nrOfCompletedInstances == nrOfInstances}</completionCondition>\n`
+      xml += `      </multiInstanceLoopCharacteristics>\n`
       xml += `    </${elementName}>\n`
+    } else if (node.type === 'userTask') {
+      const assignee = (node.config as any)?.assignee
+      const candidateGroups = (node.config as any)?.candidateGroups
+      let attrs = ''
+      if (assignee) attrs += ` camunda:assignee="${escapeXml(assignee)}"`
+      if (candidateGroups) attrs += ` camunda:candidateGroups="${escapeXml(candidateGroups)}"`
+      xml += `    <${elementName} id="${nodeId}" name="${nodeName}"${attrs}/>\n`
     } else {
       xml += `    <${elementName} id="${nodeId}" name="${nodeName}"/>\n`
     }
@@ -688,6 +698,13 @@ const importBpmnXml = (xml: string): void => {
       const name = el.getAttribute('name') || getNodeDefaultName(nodeType)
       const size = getNodeDefaultSize(nodeType)
       const config = getNodeDefaultConfig(nodeType)
+
+      if (nodeType === 'userTask') {
+        const assignee = el.getAttributeNS(CAMUNDA_NS, 'assignee')
+        const candidateGroups = el.getAttributeNS(CAMUNDA_NS, 'candidateGroups')
+        if (assignee) config.assignee = assignee
+        if (candidateGroups) config.candidateGroups = candidateGroups
+      }
 
       if (nodeType === 'exclusiveGateway' && !config.condition) {
         const condExpr = el.getElementsByTagNameNS(BPMN_NS, 'conditionExpression')[0]

@@ -14,6 +14,7 @@ public class WfProcessInstanceVO implements Serializable {
 
     private Long id;
     private String instanceNo;
+    private String camundaProcessInstanceId;
     private Long processDefId;
     private String processCode;
     private String processName;

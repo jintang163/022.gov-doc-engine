@@ -30,6 +30,8 @@ public class WfProcessDefinitionVO implements Serializable {
     private String unitCode;
     private String unitName;
     private String remark;
+    private String camundaDeploymentId;
+    private String camundaProcessDefId;
     private String createBy;
     private LocalDateTime createTime;
     private String updateBy;

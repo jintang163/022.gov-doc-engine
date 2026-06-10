@@ -11,6 +11,11 @@ import com.gov.doc.engine.enums.WfNodeTypeEnum;
 import com.gov.doc.engine.mapper.*;
 import com.gov.doc.engine.service.*;
 import com.gov.doc.engine.vo.*;
+import lombok.extern.slf4j.Slf4j;
+import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.history.HistoricProcessInstance;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceMapper, WfProcessInstance> implements WfProcessInstanceService {
 
@@ -71,6 +77,12 @@ public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceM
 
     @Autowired
     private DocStatusMachineService statusMachineService;
+
+    @Autowired
+    private RuntimeService runtimeService;
+
+    @Autowired
+    private HistoryService historyService;
 
     @Override
     public PageResult<WfProcessInstanceVO> pageList(Integer pageNum, Integer pageSize, String startUserId, String status, String keyword) {
@@ -155,6 +167,8 @@ public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceM
         instance.setBusinessTitle(startDTO.getBusinessTitle());
         instance.setStatus("running");
         instance.setStartTime(LocalDateTime.now());
+        instance.setStartUserId(startDTO.getStartUserId());
+        instance.setStartUserName(startDTO.getStartUserName());
         if (startDTO.getFormData() != null && !startDTO.getFormData().isEmpty()) {
             instance.setFormData(JSON.toJSONString(startDTO.getFormData()));
         }
@@ -164,16 +178,38 @@ public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceM
         instance.setRemark(startDTO.getRemark());
         this.save(instance);
 
-        WfProcessNode startNode = processNodeMapper.selectOne(
-                new LambdaQueryWrapper<WfProcessNode>()
-                        .eq(WfProcessNode::getProcessDefId, definition.getId())
-                        .eq(WfProcessNode::getNodeType, WfNodeTypeEnum.START.getCode()));
-        if (startNode == null) {
-            throw new RuntimeException("流程定义缺少开始节点");
-        }
+        if (StringUtils.hasText(definition.getCamundaProcessDefId()) || StringUtils.hasText(definition.getProcessCode())) {
+            try {
+                String processKey = definition.getProcessCode();
+                Map<String, Object> camundaVariables = new HashMap<>();
+                if (startDTO.getVariables() != null) {
+                    camundaVariables.putAll(startDTO.getVariables());
+                }
+                camundaVariables.put("localProcessInstanceId", instance.getId());
+                camundaVariables.put("startUserId", startDTO.getStartUserId());
+                camundaVariables.put("startUserName", startDTO.getStartUserName());
 
-        Map<String, Object> variables = startDTO.getVariables() != null ? startDTO.getVariables() : new HashMap<>();
-        processEngineService.executeNode(instance, startNode, variables);
+                ProcessInstance camundaInstance = runtimeService.startProcessInstanceByKey(
+                        processKey, startDTO.getBusinessKey(), camundaVariables);
+
+                instance.setCamundaProcessInstanceId(camundaInstance.getId());
+
+                org.camunda.bpm.engine.runtime.ProcessInstance withData = runtimeService.createProcessInstanceQuery()
+                        .processInstanceId(camundaInstance.getId())
+                        .singleResult();
+                if (withData != null) {
+                    List<org.camunda.bpm.engine.task.Task> tasks = processEngineService.findCamundaTasksByProcessInstance(camundaInstance.getId());
+                    if (!tasks.isEmpty()) {
+                        instance.setCurrentNodeId(tasks.get(0).getTaskDefinitionKey());
+                        instance.setCurrentNodeName(tasks.get(0).getName());
+                    }
+                }
+
+                processInstanceMapper.updateById(instance);
+            } catch (Exception e) {
+                log.error("Failed to start Camunda process: {}", e.getMessage(), e);
+            }
+        }
 
         updateDocStatusOnProcessStart(instance, startDTO);
 
@@ -245,6 +281,9 @@ public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceM
         if (!"running".equals(instance.getStatus())) {
             throw new RuntimeException("流程实例状态不允许挂起");
         }
+        if (StringUtils.hasText(instance.getCamundaProcessInstanceId())) {
+            runtimeService.suspendProcessInstanceById(instance.getCamundaProcessInstanceId());
+        }
         instance.setStatus("suspended");
         this.updateById(instance);
     }
@@ -259,6 +298,9 @@ public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceM
         if (!"suspended".equals(instance.getStatus())) {
             throw new RuntimeException("流程实例状态不允许激活");
         }
+        if (StringUtils.hasText(instance.getCamundaProcessInstanceId())) {
+            runtimeService.activateProcessInstanceById(instance.getCamundaProcessInstanceId());
+        }
         instance.setStatus("running");
         this.updateById(instance);
     }
@@ -272,6 +314,10 @@ public class WfProcessInstanceServiceImpl extends ServiceImpl<WfProcessInstanceM
         }
         if ("completed".equals(instance.getStatus()) || "terminated".equals(instance.getStatus())) {
             throw new RuntimeException("流程实例已结束");
+        }
+
+        if (StringUtils.hasText(instance.getCamundaProcessInstanceId())) {
+            runtimeService.deleteProcessInstance(instance.getCamundaProcessInstanceId(), reason);
         }
 
         instance.setStatus("terminated");

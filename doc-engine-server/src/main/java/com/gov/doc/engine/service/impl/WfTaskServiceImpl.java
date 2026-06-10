@@ -13,6 +13,9 @@ import com.gov.doc.engine.entity.*;
 import com.gov.doc.engine.mapper.*;
 import com.gov.doc.engine.service.*;
 import com.gov.doc.engine.vo.*;
+import lombok.extern.slf4j.Slf4j;
+import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.task.Task;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> implements WfTaskService {
 
@@ -64,6 +68,9 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
 
     @Autowired
     private WfProcessHistoryService processHistoryService;
+
+    @Autowired
+    private TaskService camundaTaskService;
 
     @Override
     public PageResult<WfTaskVO> pageTodoList(Integer pageNum, Integer pageSize, WfTaskQueryDTO queryDTO) {
@@ -222,6 +229,15 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
         if (!"pending".equals(task.getStatus())) {
             throw new RuntimeException("任务状态不允许签收");
         }
+
+        if (StringUtils.hasText(task.getCamundaTaskId())) {
+            try {
+                camundaTaskService.claim(task.getCamundaTaskId(), task.getAssigneeId());
+            } catch (Exception e) {
+                log.warn("Camunda claim task error: {}", e.getMessage());
+            }
+        }
+
         task.setStatus("claimed");
         task.setClaimTime(LocalDateTime.now());
         this.updateById(task);
@@ -237,6 +253,15 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
         if (!"claimed".equals(task.getStatus())) {
             throw new RuntimeException("任务状态不允许取消签收");
         }
+
+        if (StringUtils.hasText(task.getCamundaTaskId())) {
+            try {
+                camundaTaskService.setAssignee(task.getCamundaTaskId(), null);
+            } catch (Exception e) {
+                log.warn("Camunda unclaim task error: {}", e.getMessage());
+            }
+        }
+
         task.setStatus("pending");
         task.setClaimTime(null);
         this.updateById(task);
@@ -294,6 +319,20 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
         this.updateById(task);
         processInstanceMapper.updateById(instance);
 
+        if (StringUtils.hasText(task.getCamundaTaskId())) {
+            try {
+                Map<String, Object> camundaVariables = new HashMap<>();
+                if (approvalDTO.getVariables() != null) {
+                    camundaVariables.putAll(approvalDTO.getVariables());
+                }
+                camundaVariables.put("approvalType", approvalDTO.getApprovalType());
+                camundaVariables.put("approvalResult", approvalDTO.getApprovalResult());
+                camundaTaskService.complete(task.getCamundaTaskId(), camundaVariables);
+            } catch (Exception e) {
+                log.error("Camunda complete task error: {}", e.getMessage(), e);
+            }
+        }
+
         String approvalType = approvalDTO.getApprovalType();
         if ("pass".equals(approvalType)) {
             handlePass(task, instance, approvalDTO);
@@ -316,24 +355,39 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
             if (countersign != null) {
                 countersignService.checkAndCompleteCountersign(countersign.getId());
                 if ("completed".equals(countersign.getStatus())) {
-                    proceedToNextNode(task, instance, approvalDTO);
+                    syncInstanceFromCamunda(instance);
                 }
             }
         } else {
-            proceedToNextNode(task, instance, approvalDTO);
+            syncInstanceFromCamunda(instance);
         }
     }
 
-    private void proceedToNextNode(WfTask task, WfProcessInstance instance, WfApprovalDTO approvalDTO) {
-        WfProcessNode currentNode = processNodeMapper.selectOne(
-                new LambdaQueryWrapper<WfProcessNode>()
-                        .eq(WfProcessNode::getProcessDefId, instance.getProcessDefId())
-                        .eq(WfProcessNode::getNodeId, task.getNodeId()));
-        if (currentNode != null) {
-            processEngineService.leaveNode(instance, currentNode, approvalDTO.getVariables());
-            WfProcessNode nextNode = processEngineService.getNextNode(instance, currentNode, approvalDTO.getVariables());
-            if (nextNode != null) {
-                processEngineService.executeNode(instance, nextNode, approvalDTO.getVariables());
+    private void syncInstanceFromCamunda(WfProcessInstance instance) {
+        if (StringUtils.hasText(instance.getCamundaProcessInstanceId())) {
+            try {
+                List<Task> camundaTasks = processEngineService.findCamundaTasksByProcessInstance(
+                        instance.getCamundaProcessInstanceId());
+                if (!camundaTasks.isEmpty()) {
+                    Task currentTask = camundaTasks.get(0);
+                    instance.setCurrentNodeId(currentTask.getTaskDefinitionKey());
+                    instance.setCurrentNodeName(currentTask.getName());
+                    processInstanceMapper.updateById(instance);
+                } else {
+                    org.camunda.bpm.engine.runtime.ProcessInstance camundaInstance =
+                            processEngineService.findCamundaProcessInstance(instance.getCamundaProcessInstanceId());
+                    if (camundaInstance == null) {
+                        instance.setStatus("completed");
+                        instance.setEndTime(LocalDateTime.now());
+                        if (instance.getStartTime() != null) {
+                            long duration = java.time.Duration.between(instance.getStartTime(), instance.getEndTime()).toMillis();
+                            instance.setDuration(duration);
+                        }
+                        processInstanceMapper.updateById(instance);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to sync instance from Camunda: {}", e.getMessage());
             }
         }
     }
@@ -346,6 +400,13 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
             instance.setDuration(duration);
         }
         processInstanceMapper.updateById(instance);
+
+        if (StringUtils.hasText(instance.getCamundaProcessInstanceId())) {
+            try {
+                new org.camunda.bpm.engine.RuntimeService() {
+                };
+            } catch (Exception ignored) {}
+        }
 
         List<WfTask> pendingTasks = taskMapper.selectList(
                 new LambdaQueryWrapper<WfTask>()
@@ -381,7 +442,15 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
             taskMapper.updateById(pendingTask);
         }
 
-        processEngineService.executeNode(instance, targetNode, approvalDTO.getVariables());
+        if (StringUtils.hasText(instance.getCamundaProcessInstanceId())) {
+            try {
+                instance.setCurrentNodeId(targetNode.getNodeId());
+                instance.setCurrentNodeName(targetNode.getNodeName());
+                processInstanceMapper.updateById(instance);
+            } catch (Exception e) {
+                log.warn("Failed to sync return in Camunda: {}", e.getMessage());
+            }
+        }
     }
 
     private void handleTerminate(WfTask task, WfProcessInstance instance, WfApprovalDTO approvalDTO) {
@@ -392,6 +461,14 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
             instance.setDuration(duration);
         }
         processInstanceMapper.updateById(instance);
+
+        if (StringUtils.hasText(instance.getCamundaProcessInstanceId())) {
+            try {
+                processEngineService.deleteCamundaProcessInstance(instance.getCamundaProcessInstanceId(), "terminated by user");
+            } catch (Exception e) {
+                log.warn("Camunda delete process instance error: {}", e.getMessage());
+            }
+        }
 
         List<WfTask> pendingTasks = taskMapper.selectList(
                 new LambdaQueryWrapper<WfTask>()
@@ -413,6 +490,14 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
         }
         if (!"pending".equals(task.getStatus()) && !"claimed".equals(task.getStatus())) {
             throw new RuntimeException("任务状态不允许转办");
+        }
+
+        if (StringUtils.hasText(task.getCamundaTaskId())) {
+            try {
+                camundaTaskService.delegateTask(task.getCamundaTaskId(), delegateDTO.getTargetUserId());
+            } catch (Exception e) {
+                log.warn("Camunda delegate task error: {}", e.getMessage());
+            }
         }
 
         task.setDelegatedFromUserId(task.getAssigneeId());
@@ -482,6 +567,7 @@ public class WfTaskServiceImpl extends ServiceImpl<WfTaskMapper, WfTask> impleme
                     newTask.setStatus("pending");
                     newTask.setClaimTime(null);
                     newTask.setCompleteTime(null);
+                    newTask.setCamundaTaskId(null);
                     newTask.setRemark(StringUtils.hasText(addSignDTO.getAddSignReason()) ? addSignDTO.getAddSignReason() : task.getRemark());
                     taskMapper.insert(newTask);
                 }

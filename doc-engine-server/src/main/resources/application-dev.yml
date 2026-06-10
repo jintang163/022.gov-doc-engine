@@ -39,3 +39,8 @@ minio:
   accessKey: minioadmin
   secretKey: minioadmin
   bucketName: gov-doc
+
+camunda:
+  bpm:
+    database:
+      schema-update: true

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `doc_status_log` (
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_by` varchar(64) DEFAULT NULL COMMENT '更新人',
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否1是',
   PRIMARY KEY (`id`),
   KEY `idx_doc_id` (`doc_id`),
   KEY `idx_operation_time` (`operation_time`)
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `doc_distribution` (
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_by` varchar(64) DEFAULT NULL COMMENT '更新人',
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否1是',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_distribution_unit` (`distribution_no`, `unit_id`, `unit_type`),
   KEY `idx_doc_id` (`doc_id`),

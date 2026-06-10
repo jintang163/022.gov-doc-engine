@@ -13,9 +13,14 @@ import com.gov.doc.engine.entity.*;
 import com.gov.doc.engine.enums.WfNodeTypeEnum;
 import com.gov.doc.engine.mapper.*;
 import com.gov.doc.engine.service.WfProcessDefinitionService;
+import com.gov.doc.engine.service.WfProcessHistoryService;
 import com.gov.doc.engine.vo.WfProcessDefinitionVO;
 import com.gov.doc.engine.vo.WfProcessGraphVO;
 import com.gov.doc.engine.vo.WfProcessHistoryVO;
+import lombok.extern.slf4j.Slf4j;
+import org.camunda.bpm.engine.RepositoryService;
+import org.camunda.bpm.engine.repository.Deployment;
+import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,7 @@ import org.springframework.util.StringUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class WfProcessDefinitionServiceImpl extends ServiceImpl<WfProcessDefinitionMapper, WfProcessDefinition> implements WfProcessDefinitionService {
 
@@ -42,6 +48,9 @@ public class WfProcessDefinitionServiceImpl extends ServiceImpl<WfProcessDefinit
 
     @Autowired
     private WfProcessInstanceMapper processInstanceMapper;
+
+    @Autowired
+    private RepositoryService repositoryService;
 
     @Override
     public PageResult<WfProcessDefinitionVO> pageList(Integer pageNum, Integer pageSize, WfProcessDefinitionQueryDTO queryDTO) {
@@ -129,12 +138,18 @@ public class WfProcessDefinitionServiceImpl extends ServiceImpl<WfProcessDefinit
             throw new RuntimeException("流程定义不存在");
         }
         if (definition.getStatus() == 1) {
+            if (StringUtils.hasText(definition.getCamundaDeploymentId())) {
+                repositoryService.deleteDeployment(definition.getCamundaDeploymentId(), true);
+            }
+
             WfProcessDefinition newVersion = new WfProcessDefinition();
             BeanUtils.copyProperties(saveDTO, newVersion);
             newVersion.setId(null);
             newVersion.setVersion(definition.getVersion() + 1);
             newVersion.setStatus(0);
             newVersion.setIsCurrentVersion(1);
+            newVersion.setCamundaDeploymentId(null);
+            newVersion.setCamundaProcessDefId(null);
             this.save(newVersion);
 
             definition.setIsCurrentVersion(0);
@@ -143,6 +158,11 @@ public class WfProcessDefinitionServiceImpl extends ServiceImpl<WfProcessDefinit
             saveNodesAndEdges(newVersion.getId(), saveDTO);
         } else {
             BeanUtils.copyProperties(saveDTO, definition);
+            if (StringUtils.hasText(definition.getCamundaDeploymentId())) {
+                repositoryService.deleteDeployment(definition.getCamundaDeploymentId(), true);
+                definition.setCamundaDeploymentId(null);
+                definition.setCamundaProcessDefId(null);
+            }
             this.updateById(definition);
 
             processNodeMapper.delete(new LambdaQueryWrapper<WfProcessNode>()
@@ -215,8 +235,113 @@ public class WfProcessDefinitionServiceImpl extends ServiceImpl<WfProcessDefinit
         if (definition == null) {
             throw new RuntimeException("流程定义不存在");
         }
+
+        String bpmnXml = buildBpmnXml(definition);
+        String resourceName = definition.getProcessCode() + ".bpmn";
+
+        Deployment deployment = repositoryService.createDeployment()
+                .name(definition.getProcessName())
+                .addString(resourceName, bpmnXml)
+                .deploy();
+
+        ProcessDefinition camundaDef = repositoryService.createProcessDefinitionQuery()
+                .deploymentId(deployment.getId())
+                .singleResult();
+
         definition.setStatus(1);
+        definition.setCamundaDeploymentId(deployment.getId());
+        definition.setCamundaProcessDefId(camundaDef != null ? camundaDef.getId() : null);
         this.updateById(definition);
+    }
+
+    private String buildBpmnXml(WfProcessDefinition definition) {
+        Long processDefId = definition.getId();
+        List<WfProcessNode> nodes = processNodeMapper.selectList(
+                new LambdaQueryWrapper<WfProcessNode>()
+                        .eq(WfProcessNode::getProcessDefId, processDefId)
+                        .orderByAsc(WfProcessNode::getSortOrder));
+        List<WfProcessEdge> edges = processEdgeMapper.selectList(
+                new LambdaQueryWrapper<WfProcessEdge>()
+                        .eq(WfProcessEdge::getProcessDefId, processDefId)
+                        .orderByAsc(WfProcessEdge::getSortOrder));
+
+        StringBuilder xml = new StringBuilder();
+        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.append("<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"\n");
+        xml.append("             xmlns:camunda=\"http://camunda.org/schema/1.0/bpmn\"\n");
+        xml.append("             targetNamespace=\"http://gov.doc.engine\">\n");
+        xml.append("  <process id=\"").append(escapeXml(definition.getProcessCode())).append("\" name=\"").append(escapeXml(definition.getProcessName())).append("\" isExecutable=\"true\">\n");
+
+        for (WfProcessNode node : nodes) {
+            String nodeType = node.getNodeType();
+            String nodeId = escapeXml(node.getNodeId());
+            String nodeName = escapeXml(node.getNodeName());
+            if (WfNodeTypeEnum.START.getCode().equals(nodeType)) {
+                xml.append("    <startEvent id=\"").append(nodeId).append("\" name=\"").append(nodeName).append("\" />\n");
+            } else if (WfNodeTypeEnum.END.getCode().equals(nodeType)) {
+                xml.append("    <endEvent id=\"").append(nodeId).append("\" name=\"").append(nodeName).append("\" />\n");
+            } else if (WfNodeTypeEnum.USER_TASK.getCode().equals(nodeType)) {
+                xml.append("    <userTask id=\"").append(nodeId).append("\" name=\"").append(nodeName).append("\"");
+                appendTaskAssignee(xml, processDefId, node);
+                xml.append(" />\n");
+            } else if (WfNodeTypeEnum.COUNTERSIGN.getCode().equals(nodeType)) {
+                xml.append("    <userTask id=\"").append(nodeId).append("\" name=\"").append(nodeName).append("\">\n");
+                xml.append("      <multiInstanceLoopCharacteristics isSequential=\"false\" camunda:collection=\"${countersignUsers_").append(nodeId).append("}\" camunda:variableName=\"assignee\">\n");
+                xml.append("        <completionCondition>${nrOfCompletedInstances == nrOfInstances}</completionCondition>\n");
+                xml.append("      </multiInstanceLoopCharacteristics>\n");
+                xml.append("      <potentialOwner><resourceRef>users</resourceRef></potentialOwner>\n");
+                xml.append("    </userTask>\n");
+            } else if (WfNodeTypeEnum.PARALLEL_GATEWAY.getCode().equals(nodeType)) {
+                xml.append("    <parallelGateway id=\"").append(nodeId).append("\" name=\"").append(nodeName).append("\" />\n");
+            } else if (WfNodeTypeEnum.EXCLUSIVE_GATEWAY.getCode().equals(nodeType)) {
+                xml.append("    <exclusiveGateway id=\"").append(nodeId).append("\" name=\"").append(nodeName).append("\" />\n");
+            } else if (WfNodeTypeEnum.INCLUSIVE_GATEWAY.getCode().equals(nodeType)) {
+                xml.append("    <inclusiveGateway id=\"").append(nodeId).append("\" name=\"").append(nodeName).append("\" />\n");
+            }
+        }
+
+        for (WfProcessEdge edge : edges) {
+            xml.append("    <sequenceFlow id=\"").append(escapeXml(edge.getEdgeId()))
+               .append("\" sourceRef=\"").append(escapeXml(edge.getSourceNodeId()))
+               .append("\" targetRef=\"").append(escapeXml(edge.getTargetNodeId())).append("\"");
+            if (StringUtils.hasText(edge.getEdgeName())) {
+                xml.append(" name=\"").append(escapeXml(edge.getEdgeName())).append("\"");
+            }
+            xml.append(">\n");
+            if (StringUtils.hasText(edge.getConditionExpression())) {
+                xml.append("      <conditionExpression xsi:type=\"tFormalExpression\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">")
+                   .append(escapeXml(edge.getConditionExpression()))
+                   .append("</conditionExpression>\n");
+            }
+            xml.append("    </sequenceFlow>\n");
+        }
+
+        xml.append("  </process>\n");
+        xml.append("</definitions>");
+        return xml.toString();
+    }
+
+    private void appendTaskAssignee(StringBuilder xml, Long processDefId, WfProcessNode node) {
+        List<WfParticipant> participants = participantMapper.selectList(
+                new LambdaQueryWrapper<WfParticipant>()
+                        .eq(WfParticipant::getProcessDefId, processDefId)
+                        .eq(WfParticipant::getNodeId, node.getNodeId())
+                        .orderByAsc(WfParticipant::getSortOrder));
+        if (participants != null && !participants.isEmpty()) {
+            WfParticipant p = participants.get(0);
+            if ("user".equals(p.getParticipantType()) && StringUtils.hasText(p.getParticipantValue())) {
+                xml.append(" camunda:assignee=\"").append(escapeXml(p.getParticipantValue())).append("\"");
+            } else if ("role".equals(p.getParticipantType()) && StringUtils.hasText(p.getParticipantValue())) {
+                xml.append(" camunda:candidateGroups=\"").append(escapeXml(p.getParticipantValue())).append("\"");
+            } else if ("dept".equals(p.getParticipantType()) && StringUtils.hasText(p.getParticipantValue())) {
+                xml.append(" camunda:candidateGroups=\"").append(escapeXml(p.getParticipantValue())).append("\"");
+            }
+        }
+    }
+
+    private String escapeXml(String input) {
+        if (input == null) return "";
+        return input.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;");
     }
 
     @Override
@@ -226,6 +351,9 @@ public class WfProcessDefinitionServiceImpl extends ServiceImpl<WfProcessDefinit
         if (definition == null) {
             throw new RuntimeException("流程定义不存在");
         }
+        if (StringUtils.hasText(definition.getCamundaProcessDefId())) {
+            repositoryService.suspendProcessDefinitionById(definition.getCamundaProcessDefId());
+        }
         definition.setStatus(2);
         this.updateById(definition);
     }
@@ -233,6 +361,10 @@ public class WfProcessDefinitionServiceImpl extends ServiceImpl<WfProcessDefinit
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteProcessDefinition(Long id) {
+        WfProcessDefinition definition = this.getById(id);
+        if (definition != null && StringUtils.hasText(definition.getCamundaDeploymentId())) {
+            repositoryService.deleteDeployment(definition.getCamundaDeploymentId(), true);
+        }
         this.removeById(id);
         processNodeMapper.delete(new LambdaQueryWrapper<WfProcessNode>()
                 .eq(WfProcessNode::getProcessDefId, id));

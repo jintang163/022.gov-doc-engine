@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class WfTask extends BaseEntity {
 
     private String taskNo;
+    private String camundaTaskId;
     private Long processInstanceId;
     private Long processDefId;
     private String nodeId;

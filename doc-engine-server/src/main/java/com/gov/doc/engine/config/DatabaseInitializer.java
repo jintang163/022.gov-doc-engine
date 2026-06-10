@@ -41,6 +41,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             initSysDeptTable();
             initSysPostTable();
             initSysUserTable();
+            initDeletedColumns();
 
             log.info("Database initialization completed successfully");
         } catch (Exception e) {
@@ -238,5 +239,10 @@ public class DatabaseInitializer implements CommandLineRunner {
         } else {
             log.info("Table sys_user already exists, skipping creation");
         }
+    }
+
+    private void initDeletedColumns() throws Exception {
+        log.info("Fixing deleted columns for existing tables...");
+        executeSqlFromResource("db/changelog/012_fix_deleted_columns.sql");
     }
 }

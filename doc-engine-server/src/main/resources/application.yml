@@ -42,3 +42,17 @@ pagehelper:
   reasonable: true
   support-methods-arguments: true
   params: count=countSql
+
+camunda:
+  bpm:
+    admin-user:
+      id: admin
+      password: admin123
+      firstName: Admin
+    webapp:
+      index-redirect-enabled: true
+    history-level: full
+    database:
+      schema-update: true
+      table-prefix: CAMUNDA.
+    auto-deployment-enabled: false

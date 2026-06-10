@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class WfProcessInstance extends BaseEntity {
 
     private String instanceNo;
+    private String camundaProcessInstanceId;
     private Long processDefId;
     private String processCode;
     private String processName;

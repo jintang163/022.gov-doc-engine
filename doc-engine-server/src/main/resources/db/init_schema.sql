@@ -15,6 +15,9 @@ SOURCE db/changelog/006_add_doc_status_and_distribution.sql;
 -- 011: 新增组织架构管理表
 SOURCE db/changelog/011_add_org_tables.sql;
 
+-- 012: 修复deleted字段
+SOURCE db/changelog/012_fix_deleted_columns.sql;
+
 -- =====================================================================
 -- 数据初始化完成
 -- =====================================================================

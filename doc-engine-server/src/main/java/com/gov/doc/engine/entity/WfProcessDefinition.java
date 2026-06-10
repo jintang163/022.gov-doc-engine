@@ -24,4 +24,6 @@ public class WfProcessDefinition extends BaseEntity {
     private String unitCode;
     private String unitName;
     private String remark;
+    private String camundaDeploymentId;
+    private String camundaProcessDefId;
 }
