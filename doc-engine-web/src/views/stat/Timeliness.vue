@@ -287,11 +287,20 @@ const loadTrend = async () => {
   }
 }
 
-const loadAllData = () => {
-  loadDeptDraft()
-  loadNodeDwell()
-  loadCountersignCycle()
-  loadTrend()
+const loadAllData = async () => {
+  await Promise.all([
+    loadDeptDraft(),
+    loadNodeDwell(),
+    loadCountersignCycle(),
+    loadTrend()
+  ])
+}
+
+const renderAllCharts = () => {
+  renderDeptDraftChart()
+  renderNodeDwellChart()
+  renderCountersignCycleChart()
+  renderTrendChart()
 }
 
 const initCharts = () => {
@@ -472,9 +481,10 @@ const handleResize = () => {
 
 onMounted(async () => {
   await loadUnits()
-  loadAllData()
+  await loadAllData()
   await nextTick()
   initCharts()
+  renderAllCharts()
   window.addEventListener('resize', handleResize)
 })
 

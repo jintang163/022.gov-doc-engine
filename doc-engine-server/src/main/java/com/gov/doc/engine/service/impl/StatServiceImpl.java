@@ -534,9 +534,11 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
             params.add(queryDTO.getProcessType());
         }
 
+        long standardSeconds = 1440 * 60;
         String sql = "SELECT ph.node_id, ph.node_name, ph.node_type, " +
                 "su.post_id, sp.post_name, " +
                 "COUNT(ph.id) as task_count, " +
+                "SUM(CASE WHEN ph.duration <= ? THEN 1 ELSE 0 END) as within_count, " +
                 "AVG(ph.duration) as avg_dwell, " +
                 "MIN(ph.duration) as min_dwell, " +
                 "MAX(ph.duration) as max_dwell " +
@@ -548,6 +550,8 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
                 " GROUP BY ph.node_id, ph.node_name, ph.node_type, su.post_id, sp.post_name " +
                 " ORDER BY avg_dwell DESC";
 
+        params.add(0, standardSeconds);
+
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
         for (Map<String, Object> row : rows) {
             StatNodeDwellVO vo = new StatNodeDwellVO();
@@ -558,23 +562,21 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
             vo.setPostName(row.get("post_name") != null ? row.get("post_name").toString() : "未分配岗位");
             vo.setTaskCount(row.get("task_count") != null ? ((Number) row.get("task_count")).longValue() : 0L);
 
-            long avgMs = row.get("avg_dwell") != null ? ((Number) row.get("avg_dwell")).longValue() : 0L;
-            long minMs = row.get("min_dwell") != null ? ((Number) row.get("min_dwell")).longValue() : 0L;
-            long maxMs = row.get("max_dwell") != null ? ((Number) row.get("max_dwell")).longValue() : 0L;
+            long avgSeconds = row.get("avg_dwell") != null ? ((Number) row.get("avg_dwell")).longValue() : 0L;
+            long minSeconds = row.get("min_dwell") != null ? ((Number) row.get("min_dwell")).longValue() : 0L;
+            long maxSeconds = row.get("max_dwell") != null ? ((Number) row.get("max_dwell")).longValue() : 0L;
+            long withinCount = row.get("within_count") != null ? ((Number) row.get("within_count")).longValue() : 0L;
 
-            vo.setAvgDwellMinutes(avgMs / (60 * 1000));
-            vo.setAvgDwellText(formatDuration(avgMs));
-            vo.setMinDwellMinutes(minMs / (60 * 1000));
-            vo.setMinDwellText(formatDuration(minMs));
-            vo.setMaxDwellMinutes(maxMs / (60 * 1000));
-            vo.setMaxDwellText(formatDuration(maxMs));
+            vo.setAvgDwellMinutes(avgSeconds / 60);
+            vo.setAvgDwellText(formatDuration(avgSeconds * 1000));
+            vo.setMinDwellMinutes(minSeconds / 60);
+            vo.setMinDwellText(formatDuration(minSeconds * 1000));
+            vo.setMaxDwellMinutes(maxSeconds / 60);
+            vo.setMaxDwellText(formatDuration(maxSeconds * 1000));
 
             double withinRate = 0.0;
-            long standardMinutes = 1440;
-            if (vo.getAvgDwellMinutes() > 0 && vo.getAvgDwellMinutes() <= standardMinutes) {
-                withinRate = Math.round(vo.getAvgDwellMinutes() * 10000.0 / standardMinutes) / 100.0;
-            } else if (vo.getAvgDwellMinutes() > standardMinutes) {
-                withinRate = 0.0;
+            if (vo.getTaskCount() > 0) {
+                withinRate = Math.round(withinCount * 10000.0 / vo.getTaskCount()) / 100.0;
             }
             vo.setWithinRate(withinRate);
 
@@ -606,8 +608,10 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
             params.add(queryDTO.getDocType());
         }
 
+        long standardMinutes = 3 * 24 * 60;
         String sql = "SELECT d.doc_type, " +
                 "COUNT(cs.id) as countersign_count, " +
+                "SUM(CASE WHEN TIMESTAMPDIFF(MINUTE, cs.start_time, cs.end_time) <= ? THEN 1 ELSE 0 END) as within_count, " +
                 "AVG(TIMESTAMPDIFF(MINUTE, cs.start_time, cs.end_time)) as avg_cycle_minutes, " +
                 "MIN(TIMESTAMPDIFF(MINUTE, cs.start_time, cs.end_time)) as min_cycle_minutes, " +
                 "MAX(TIMESTAMPDIFF(MINUTE, cs.start_time, cs.end_time)) as max_cycle_minutes " +
@@ -616,6 +620,8 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
                 where.toString() +
                 " GROUP BY d.doc_type " +
                 " ORDER BY avg_cycle_minutes DESC";
+
+        params.add(0, standardMinutes);
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, params.toArray());
         for (Map<String, Object> row : rows) {
@@ -631,10 +637,10 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
             vo.setMaxCycleMinutes(row.get("max_cycle_minutes") != null ? ((Number) row.get("max_cycle_minutes")).longValue() : 0L);
             vo.setMaxCycleText(formatDuration(vo.getMaxCycleMinutes() * 60 * 1000));
 
+            long withinCount = row.get("within_count") != null ? ((Number) row.get("within_count")).longValue() : 0L;
             double withinRate = 0.0;
-            long standardMinutes = 3 * 24 * 60;
-            if (vo.getAvgCycleMinutes() > 0 && vo.getAvgCycleMinutes() <= standardMinutes) {
-                withinRate = Math.round((standardMinutes - vo.getAvgCycleMinutes()) * 10000.0 / standardMinutes) / 100.0;
+            if (vo.getCountersignCount() > 0) {
+                withinRate = Math.round(withinCount * 10000.0 / vo.getCountersignCount()) / 100.0;
             }
             vo.setWithinRate(withinRate);
 
@@ -693,7 +699,7 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
             dwellWhere.append(" AND ph.leave_time <= ? ");
             dwellParams.add(queryDTO.getEndDate() + " 23:59:59");
         }
-        String dwellSql = "SELECT DATE(ph.enter_time) as date, AVG(ph.duration / (60 * 1000)) as avg_dwell_minutes " +
+        String dwellSql = "SELECT DATE(ph.enter_time) as date, AVG(ph.duration / 60) as avg_dwell_minutes " +
                 "FROM wf_process_history ph " +
                 dwellWhere.toString() +
                 " GROUP BY DATE(ph.enter_time)";
