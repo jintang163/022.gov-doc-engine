@@ -2,10 +2,16 @@ package com.gov.doc.engine.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.gov.doc.engine.dto.EfficiencyRankQueryDTO;
 import com.gov.doc.engine.dto.StatQueryDTO;
 import com.gov.doc.engine.entity.DocDocument;
+import com.gov.doc.engine.entity.StatEfficiency;
+import com.gov.doc.engine.enums.EfficiencyRankTypeEnum;
 import com.gov.doc.engine.mapper.DocDocumentMapper;
+import com.gov.doc.engine.mapper.StatEfficiencyMapper;
 import com.gov.doc.engine.mapper.WfProcessDefinitionMapper;
 import com.gov.doc.engine.mapper.WfProcessInstanceMapper;
 import com.gov.doc.engine.service.StatService;
@@ -13,6 +19,7 @@ import com.gov.doc.engine.vo.StatCountersignCycleVO;
 import com.gov.doc.engine.vo.StatDeptDraftVO;
 import com.gov.doc.engine.vo.StatDocStatusVO;
 import com.gov.doc.engine.vo.StatDocTypeVO;
+import com.gov.doc.engine.vo.StatEfficiencyVO;
 import com.gov.doc.engine.vo.StatNodeDwellVO;
 import com.gov.doc.engine.vo.StatOverviewVO;
 import com.gov.doc.engine.vo.StatProcessVO;
@@ -22,13 +29,25 @@ import com.gov.doc.engine.vo.StatRejectionWordVO;
 import com.gov.doc.engine.vo.StatTimelinessTrendVO;
 import com.gov.doc.engine.vo.StatTrendVO;
 import com.gov.doc.engine.vo.StatUnitVO;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -55,6 +74,9 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
 
     @Autowired
     private WfProcessDefinitionMapper wfProcessDefinitionMapper;
+
+    @Autowired
+    private StatEfficiencyMapper statEfficiencyMapper;
 
     private static final Map<String, String> DOC_TYPE_NAME_MAP = new HashMap<>();
     private static final Map<String, String> DOC_STATUS_NAME_MAP = new HashMap<>();
@@ -984,4 +1006,350 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
         result.sort(Comparator.comparing(StatRejectionReasonVO::getCount).reversed());
         return result;
     }
+
+    @Override
+    public Page<StatEfficiencyVO> getDeptEfficiencyRank(EfficiencyRankQueryDTO queryDTO) {
+        String statMonth = resolveStatMonth(queryDTO.getStatMonth());
+        if (!hasMonthData(statMonth, EfficiencyRankTypeEnum.DEPARTMENT)) {
+            calculateEfficiencyForMonth(statMonth);
+        }
+        LambdaQueryWrapper<StatEfficiency> wrapper = buildEfficiencyWrapper(statMonth, EfficiencyRankTypeEnum.DEPARTMENT, queryDTO);
+        Page<StatEfficiency> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<StatEfficiency> entityPage = statEfficiencyMapper.selectPage(page, wrapper);
+        return convertToEfficiencyVOPage(entityPage);
+    }
+
+    @Override
+    public Page<StatEfficiencyVO> getPersonEfficiencyRank(EfficiencyRankQueryDTO queryDTO) {
+        String statMonth = resolveStatMonth(queryDTO.getStatMonth());
+        if (!hasMonthData(statMonth, EfficiencyRankTypeEnum.PERSON)) {
+            calculateEfficiencyForMonth(statMonth);
+        }
+        LambdaQueryWrapper<StatEfficiency> wrapper = buildEfficiencyWrapper(statMonth, EfficiencyRankTypeEnum.PERSON, queryDTO);
+        Page<StatEfficiency> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<StatEfficiency> entityPage = statEfficiencyMapper.selectPage(page, wrapper);
+        return convertToEfficiencyVOPage(entityPage);
+    }
+
+    @Override
+    public void exportEfficiencyRank(EfficiencyRankQueryDTO queryDTO, String rankType, OutputStream outputStream) {
+        EfficiencyRankTypeEnum rankEnum = EfficiencyRankTypeEnum.of(rankType);
+        if (rankEnum == null) rankEnum = EfficiencyRankTypeEnum.DEPARTMENT;
+
+        String statMonth = resolveStatMonth(queryDTO.getStatMonth());
+        if (!hasMonthData(statMonth, rankEnum)) {
+            calculateEfficiencyForMonth(statMonth);
+        }
+        queryDTO.setPageNum(1);
+        queryDTO.setPageSize(10000);
+        LambdaQueryWrapper<StatEfficiency> wrapper = buildEfficiencyWrapper(statMonth, rankEnum, queryDTO);
+        List<StatEfficiency> list = statEfficiencyMapper.selectList(wrapper);
+
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet(rankEnum.getDesc() + "效能排行");
+            CellStyle headerStyle = wb.createCellStyle();
+            Font headerFont = wb.createFont();
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 12);
+            headerStyle.setFont(headerFont);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setBorderBottom(BorderStyle.THIN);
+            headerStyle.setBorderTop(BorderStyle.THIN);
+            headerStyle.setBorderLeft(BorderStyle.THIN);
+            headerStyle.setBorderRight(BorderStyle.THIN);
+
+            CellStyle dataStyle = wb.createCellStyle();
+            dataStyle.setBorderBottom(BorderStyle.THIN);
+            dataStyle.setBorderTop(BorderStyle.THIN);
+            dataStyle.setBorderLeft(BorderStyle.THIN);
+            dataStyle.setBorderRight(BorderStyle.THIN);
+
+            List<String> headers = new ArrayList<>();
+            headers.add("排名");
+            headers.add("统计月份");
+            if (rankEnum == EfficiencyRankTypeEnum.PERSON) {
+                headers.add("姓名");
+                headers.add("所属部门");
+            } else {
+                headers.add("部门名称");
+                headers.add("所属单位");
+            }
+            headers.add("任务总数");
+            headers.add("已办结");
+            headers.add("超时数");
+            headers.add("办结率(%)");
+            headers.add("平均时长");
+            headers.add("效率得分");
+            headers.add("等级");
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.size(); i++) {
+                headerRow.createCell(i).setCellValue(headers.get(i));
+                headerRow.getCell(i).setCellStyle(headerStyle);
+            }
+
+            for (int i = 0; i < list.size(); i++) {
+                StatEfficiency e = list.get(i);
+                Row row = sheet.createRow(i + 1);
+                int col = 0;
+                row.createCell(col++).setCellValue(e.getRankNo() == null ? 0 : e.getRankNo());
+                row.createCell(col++).setCellValue(e.getStatMonth());
+                if (rankEnum == EfficiencyRankTypeEnum.PERSON) {
+                    row.createCell(col++).setCellValue(e.getTargetName() == null ? "" : e.getTargetName());
+                    row.createCell(col++).setCellValue(e.getDeptName() == null ? "" : e.getDeptName());
+                } else {
+                    row.createCell(col++).setCellValue(e.getTargetName() == null ? "" : e.getTargetName());
+                    row.createCell(col++).setCellValue(e.getUnitName() == null ? "" : e.getUnitName());
+                }
+                row.createCell(col++).setCellValue(e.getTotalTask() == null ? 0 : e.getTotalTask());
+                row.createCell(col++).setCellValue(e.getCompletedTask() == null ? 0 : e.getCompletedTask());
+                row.createCell(col++).setCellValue(e.getOverdueTask() == null ? 0 : e.getOverdueTask());
+                row.createCell(col++).setCellValue(e.getCompletionRate() == null ? 0 : e.getCompletionRate());
+                row.createCell(col++).setCellValue(e.getAvgDurationText() == null ? "" : e.getAvgDurationText());
+                row.createCell(col++).setCellValue(e.getEfficiencyScore() == null ? 0 : e.getEfficiencyScore());
+                row.createCell(col++).setCellValue(resolveRankLevel(e.getRankNo()));
+
+                for (int c = 0; c < col; c++) {
+                    row.getCell(c).setCellStyle(dataStyle);
+                }
+            }
+
+            for (int i = 0; i < headers.size(); i++) {
+                sheet.autoSizeColumn(i);
+                int width = sheet.getColumnWidth(i);
+                sheet.setColumnWidth(i, Math.min(width + 1024, 15000));
+            }
+
+            wb.write(outputStream);
+            outputStream.flush();
+        } catch (Exception ex) {
+            throw new RuntimeException("导出Excel失败：" + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean calculateEfficiencyForMonth(String statMonth) {
+        statMonth = resolveStatMonth(statMonth);
+        deleteMonthData(statMonth, EfficiencyRankTypeEnum.DEPARTMENT);
+        deleteMonthData(statMonth, EfficiencyRankTypeEnum.PERSON);
+
+        List<StatEfficiency> deptList = aggregateDeptEfficiency(statMonth);
+        calcScoreAndRank(deptList);
+        for (StatEfficiency e : deptList) statEfficiencyMapper.insert(e);
+
+        List<StatEfficiency> personList = aggregatePersonEfficiency(statMonth);
+        calcScoreAndRank(personList);
+        for (StatEfficiency e : personList) statEfficiencyMapper.insert(e);
+
+        return true;
+    }
+
+    private String resolveStatMonth(String statMonth) {
+        if (StrUtil.isBlank(statMonth)) {
+            return YearMonth.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        }
+        return statMonth.trim();
+    }
+
+    private boolean hasMonthData(String statMonth, EfficiencyRankTypeEnum rankType) {
+        Long cnt = statEfficiencyMapper.selectCount(new LambdaQueryWrapper<StatEfficiency>()
+                .eq(StatEfficiency::getStatMonth, statMonth)
+                .eq(StatEfficiency::getRankType, rankType.getCode()));
+        return cnt != null && cnt > 0;
+    }
+
+    private void deleteMonthData(String statMonth, EfficiencyRankTypeEnum rankType) {
+        statEfficiencyMapper.delete(new LambdaQueryWrapper<StatEfficiency>()
+                .eq(StatEfficiency::getStatMonth, statMonth)
+                .eq(StatEfficiency::getRankType, rankType.getCode()));
+    }
+
+    private LambdaQueryWrapper<StatEfficiency> buildEfficiencyWrapper(String statMonth, EfficiencyRankTypeEnum rankType, EfficiencyRankQueryDTO dto) {
+        LambdaQueryWrapper<StatEfficiency> w = new LambdaQueryWrapper<>();
+        w.eq(StatEfficiency::getStatMonth, statMonth);
+        w.eq(StatEfficiency::getRankType, rankType.getCode());
+        if (StrUtil.isNotBlank(dto.getUnitCode())) {
+            w.eq(StatEfficiency::getUnitCode, dto.getUnitCode());
+        }
+        if (StrUtil.isNotBlank(dto.getDeptId()) && rankType == EfficiencyRankTypeEnum.PERSON) {
+            w.eq(StatEfficiency::getDeptId, dto.getDeptId());
+        }
+        w.orderByAsc(StatEfficiency::getRankNo);
+        return w;
+    }
+
+    private Page<StatEfficiencyVO> convertToEfficiencyVOPage(Page<StatEfficiency> entityPage) {
+        Page<StatEfficiencyVO> voPage = new Page<>(entityPage.getCurrent(), entityPage.getSize(), entityPage.getTotal());
+        List<StatEfficiencyVO> vos = entityPage.getRecords().stream().map(e -> {
+            StatEfficiencyVO vo = new StatEfficiencyVO();
+            vo.setId(e.getId());
+            vo.setStatMonth(e.getStatMonth());
+            vo.setRankType(e.getRankType());
+            vo.setTargetId(e.getTargetId());
+            vo.setTargetName(e.getTargetName());
+            vo.setDeptId(e.getDeptId());
+            vo.setDeptName(e.getDeptName());
+            vo.setUnitCode(e.getUnitCode());
+            vo.setUnitName(e.getUnitName());
+            vo.setTotalTask(e.getTotalTask());
+            vo.setCompletedTask(e.getCompletedTask());
+            vo.setOverdueTask(e.getOverdueTask());
+            vo.setCompletionRate(e.getCompletionRate());
+            vo.setAvgDurationMinutes(e.getAvgDurationMinutes());
+            vo.setAvgDurationText(e.getAvgDurationText());
+            vo.setEfficiencyScore(e.getEfficiencyScore());
+            vo.setRankNo(e.getRankNo());
+            vo.setRankLevel(resolveRankLevel(e.getRankNo()));
+            return vo;
+        }).collect(Collectors.toList());
+        voPage.setRecords(vos);
+        return voPage;
+    }
+
+    private String resolveRankLevel(Integer rankNo) {
+        if (rankNo == null || rankNo <= 0) return "-";
+        if (rankNo <= 1) return "卓越";
+        if (rankNo <= 3) return "优秀";
+        if (rankNo <= 10) return "良好";
+        return "达标";
+    }
+
+    private List<StatEfficiency> aggregateDeptEfficiency(String statMonth) {
+        YearMonth ym = YearMonth.parse(statMonth, DateTimeFormatter.ofPattern("yyyy-MM"));
+        String startStr = ym.atDay(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 00:00:00";
+        String endStr = ym.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:59";
+
+        String sql = "SELECT " +
+                "  h.operator_dept_id as target_id, " +
+                "  h.operator_dept_name as target_name, " +
+                "  d.unit_code as unit_code, " +
+                "  d.unit_name as unit_name, " +
+                "  COUNT(h.id) as total_task, " +
+                "  SUM(CASE WHEN h.leave_time IS NOT NULL THEN 1 ELSE 0 END) as completed_task, " +
+                "  SUM(CASE WHEN h.duration IS NOT NULL AND h.duration > (5 * 24 * 60 * 60) THEN 1 " +
+                "      WHEN h.deadline_time IS NOT NULL AND h.leave_time IS NOT NULL AND h.leave_time > h.deadline_time THEN 1 " +
+                "      ELSE 0 END) as overdue_task, " +
+                "  AVG(CASE WHEN h.duration IS NOT NULL THEN h.duration ELSE NULL END) as avg_duration " +
+                "FROM wf_process_history h " +
+                "LEFT JOIN wf_process_instance pi ON h.process_instance_id = pi.id AND pi.deleted = 0 " +
+                "LEFT JOIN doc_document d ON pi.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                "WHERE h.deleted = 0 AND h.node_type = 'userTask' AND h.enter_time BETWEEN ? AND ? " +
+                "AND h.operator_dept_id IS NOT NULL " +
+                "GROUP BY h.operator_dept_id, h.operator_dept_name, d.unit_code, d.unit_name";
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, startStr, endStr);
+        return rows.stream().map(row -> {
+            StatEfficiency e = new StatEfficiency();
+            e.setStatMonth(statMonth);
+            e.setRankType(EfficiencyRankTypeEnum.DEPARTMENT.getCode());
+            e.setTargetId(row.get("target_id") == null ? "" : row.get("target_id").toString());
+            e.setTargetName(row.get("target_name") == null ? "未知部门" : row.get("target_name").toString());
+            e.setDeptId(e.getTargetId());
+            e.setDeptName(e.getTargetName());
+            e.setUnitCode(row.get("unit_code") == null ? "" : row.get("unit_code").toString());
+            e.setUnitName(row.get("unit_name") == null ? "" : row.get("unit_name").toString());
+            e.setTotalTask(row.get("total_task") == null ? 0L : ((Number) row.get("total_task")).longValue());
+            e.setCompletedTask(row.get("completed_task") == null ? 0L : ((Number) row.get("completed_task")).longValue());
+            e.setOverdueTask(row.get("overdue_task") == null ? 0L : ((Number) row.get("overdue_task")).longValue());
+            double completionRate = e.getTotalTask() > 0
+                    ? Math.round(e.getCompletedTask() * 10000.0 / e.getTotalTask()) / 100.0
+                    : 0.0;
+            e.setCompletionRate(completionRate);
+            long avgSeconds = row.get("avg_duration") == null ? 0L : ((Number) row.get("avg_duration")).longValue();
+            e.setAvgDurationMinutes(avgSeconds / 60);
+            e.setAvgDurationText(formatDuration(avgSeconds * 1000L));
+            return e;
+        }).collect(Collectors.toList());
+    }
+
+    private List<StatEfficiency> aggregatePersonEfficiency(String statMonth) {
+        YearMonth ym = YearMonth.parse(statMonth, DateTimeFormatter.ofPattern("yyyy-MM"));
+        String startStr = ym.atDay(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 00:00:00";
+        String endStr = ym.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:59";
+
+        String sql = "SELECT " +
+                "  h.operator_id as target_id, " +
+                "  su.user_name as target_name, " +
+                "  h.operator_dept_id as dept_id, " +
+                "  h.operator_dept_name as dept_name, " +
+                "  d.unit_code as unit_code, " +
+                "  d.unit_name as unit_name, " +
+                "  COUNT(h.id) as total_task, " +
+                "  SUM(CASE WHEN h.leave_time IS NOT NULL THEN 1 ELSE 0 END) as completed_task, " +
+                "  SUM(CASE WHEN h.duration IS NOT NULL AND h.duration > (5 * 24 * 60 * 60) THEN 1 " +
+                "      WHEN h.deadline_time IS NOT NULL AND h.leave_time IS NOT NULL AND h.leave_time > h.deadline_time THEN 1 " +
+                "      ELSE 0 END) as overdue_task, " +
+                "  AVG(CASE WHEN h.duration IS NOT NULL THEN h.duration ELSE NULL END) as avg_duration " +
+                "FROM wf_process_history h " +
+                "LEFT JOIN sys_user su ON h.operator_id = su.user_code AND su.deleted = 0 " +
+                "LEFT JOIN wf_process_instance pi ON h.process_instance_id = pi.id AND pi.deleted = 0 " +
+                "LEFT JOIN doc_document d ON pi.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                "WHERE h.deleted = 0 AND h.node_type = 'userTask' AND h.enter_time BETWEEN ? AND ? " +
+                "AND h.operator_id IS NOT NULL AND h.operator_id != '' " +
+                "GROUP BY h.operator_id, su.user_name, h.operator_dept_id, h.operator_dept_name, d.unit_code, d.unit_name";
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, startStr, endStr);
+        return rows.stream().map(row -> {
+            StatEfficiency e = new StatEfficiency();
+            e.setStatMonth(statMonth);
+            e.setRankType(EfficiencyRankTypeEnum.PERSON.getCode());
+            e.setTargetId(row.get("target_id") == null ? "" : row.get("target_id").toString());
+            String rawName = row.get("target_name") == null ? null : row.get("target_name").toString();
+            if (StrUtil.isBlank(rawName)) rawName = e.getTargetId();
+            e.setTargetName(rawName);
+            e.setDeptId(row.get("dept_id") == null ? "" : row.get("dept_id").toString());
+            e.setDeptName(row.get("dept_name") == null ? "未知部门" : row.get("dept_name").toString());
+            e.setUnitCode(row.get("unit_code") == null ? "" : row.get("unit_code").toString());
+            e.setUnitName(row.get("unit_name") == null ? "" : row.get("unit_name").toString());
+            e.setTotalTask(row.get("total_task") == null ? 0L : ((Number) row.get("total_task")).longValue());
+            e.setCompletedTask(row.get("completed_task") == null ? 0L : ((Number) row.get("completed_task")).longValue());
+            e.setOverdueTask(row.get("overdue_task") == null ? 0L : ((Number) row.get("overdue_task")).longValue());
+            double completionRate = e.getTotalTask() > 0
+                    ? Math.round(e.getCompletedTask() * 10000.0 / e.getTotalTask()) / 100.0
+                    : 0.0;
+            e.setCompletionRate(completionRate);
+            long avgSeconds = row.get("avg_duration") == null ? 0L : ((Number) row.get("avg_duration")).longValue();
+            e.setAvgDurationMinutes(avgSeconds / 60);
+            e.setAvgDurationText(formatDuration(avgSeconds * 1000L));
+            return e;
+        }).collect(Collectors.toList());
+    }
+
+    private void calcScoreAndRank(List<StatEfficiency> list) {
+        if (list == null || list.isEmpty()) return;
+
+        long maxTotal = list.stream().mapToLong(e -> e.getTotalTask() == null ? 0 : e.getTotalTask()).max().orElse(1L);
+        long minAvg = list.stream().mapToLong(e -> e.getAvgDurationMinutes() == null ? 0 : e.getAvgDurationMinutes()).min().orElse(1L);
+        if (minAvg <= 0) minAvg = 1L;
+
+        for (StatEfficiency e : list) {
+            double totalScore = maxTotal > 0
+                    ? ((e.getTotalTask() == null ? 0L : e.getTotalTask()) * 30.0 / maxTotal) : 0;
+            double completionScore = (e.getCompletionRate() == null ? 0.0 : e.getCompletionRate()) * 0.4;
+            long avgDuration = e.getAvgDurationMinutes() == null ? 0L : e.getAvgDurationMinutes();
+            double durationScore = avgDuration > 0
+                    ? (minAvg * 30.0 / avgDuration) : 0;
+            if (durationScore > 30) durationScore = 30;
+            long overdue = e.getOverdueTask() == null ? 0L : e.getOverdueTask();
+            double overduePenalty = overdue * 2.0;
+
+            double score = Math.round((totalScore + completionScore + durationScore - overduePenalty) * 100.0) / 100.0;
+            if (score < 0) score = 0;
+            e.setEfficiencyScore(score);
+        }
+
+        list.sort((a, b) -> {
+            double sa = a.getEfficiencyScore() == null ? 0 : a.getEfficiencyScore();
+            double sb = b.getEfficiencyScore() == null ? 0 : b.getEfficiencyScore();
+            return Double.compare(sb, sa);
+        });
+
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).setRankNo(i + 1);
+        }
+    }
 }
+

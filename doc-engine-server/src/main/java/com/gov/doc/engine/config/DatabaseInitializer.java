@@ -44,6 +44,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             initDeletedColumns();
             initDocSupervisionTable();
             initDocUrgeLogTable();
+            initStatEfficiencyTable();
 
             log.info("Database initialization completed successfully");
         } catch (Exception e) {
@@ -263,6 +264,15 @@ public class DatabaseInitializer implements CommandLineRunner {
             executeSqlFromResource("db/changelog/013_add_supervision_tables.sql");
         } else {
             log.info("Table doc_urge_log already exists, skipping creation");
+        }
+    }
+
+    private void initStatEfficiencyTable() throws Exception {
+        if (!tableExists("stat_efficiency")) {
+            log.info("Creating stat_efficiency table...");
+            executeSqlFromResource("db/changelog/014_add_efficiency_table.sql");
+        } else {
+            log.info("Table stat_efficiency already exists, skipping creation");
         }
     }
 }

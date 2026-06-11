@@ -268,6 +268,12 @@ const routes: RouteRecordRaw[] = [
     name: 'StatRejection',
     component: () => import('@/views/stat/Rejection.vue'),
     meta: { title: '退回热点分析' }
+  },
+  {
+    path: '/stat/efficiency',
+    name: 'StatEfficiency',
+    component: () => import('@/views/stat/EfficiencyRanking.vue'),
+    meta: { title: '效能排行与报表' }
   }
 ]
 

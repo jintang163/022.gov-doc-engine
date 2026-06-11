@@ -131,3 +131,52 @@ export interface StatRejectionReasonVO {
   deptId: string
   deptName: string
 }
+
+export interface EfficiencyRankQueryDTO {
+  statMonth?: string
+  unitCode?: string
+  deptId?: string
+  pageNum?: number
+  pageSize?: number
+}
+
+export interface StatEfficiencyVO {
+  id: number
+  statMonth: string
+  rankType: string
+  targetId: string
+  targetName: string
+  deptId: string
+  deptName: string
+  unitCode: string
+  unitName: string
+  totalTask: number
+  completedTask: number
+  overdueTask: number
+  completionRate: number
+  avgDurationMinutes: number
+  avgDurationText: string
+  efficiencyScore: number
+  rankNo: number
+  rankLevel: string
+}
+
+export interface PageVO<T> {
+  records: T[]
+  total: number
+  size: number
+  current: number
+  pages: number
+}
+
+export const rankLevelOptions = [
+  { label: '卓越', value: '卓越', color: '#f5222d' },
+  { label: '优秀', value: '优秀', color: '#fa8c16' },
+  { label: '良好', value: '良好', color: '#1890ff' },
+  { label: '达标', value: '达标', color: '#52c41a' }
+]
+
+export const rankTypeOptions = [
+  { label: '部门排名', value: 'dept' },
+  { label: '个人排名', value: '个人排名' }
+]

@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { StatOverviewVO, StatDocTypeVO, StatDocStatusVO, StatProcessVO, StatTrendVO, StatUnitVO, StatQueryDTO, StatDeptDraftVO, StatNodeDwellVO, StatCountersignCycleVO, StatTimelinessTrendVO, StatRejectionOverviewVO, StatRejectionWordVO, StatRejectionReasonVO } from '@/types/stat'
+import type { StatOverviewVO, StatDocTypeVO, StatDocStatusVO, StatProcessVO, StatTrendVO, StatUnitVO, StatQueryDTO, StatDeptDraftVO, StatNodeDwellVO, StatCountersignCycleVO, StatTimelinessTrendVO, StatRejectionOverviewVO, StatRejectionWordVO, StatRejectionReasonVO, StatEfficiencyVO, EfficiencyRankQueryDTO, PageVO } from '@/types/stat'
 import type { Result } from '@/types/template'
 
 export const getStatOverview = (params?: StatQueryDTO) => {
@@ -103,5 +103,38 @@ export const getStatRejectionReasons = (params?: StatQueryDTO) => {
     url: '/stat/rejection-reasons',
     method: 'get',
     params
+  })
+}
+
+export const getDeptEfficiencyRank = (params?: EfficiencyRankQueryDTO) => {
+  return request<Result<PageVO<StatEfficiencyVO>>>({
+    url: '/stat/efficiency/dept-rank',
+    method: 'get',
+    params
+  })
+}
+
+export const getPersonEfficiencyRank = (params?: EfficiencyRankQueryDTO) => {
+  return request<Result<PageVO<StatEfficiencyVO>>>({
+    url: '/stat/efficiency/person-rank',
+    method: 'get',
+    params
+  })
+}
+
+export const getEfficiencyExportUrl = (params: EfficiencyRankQueryDTO & { rankType?: 'dept' | 'person' }) => {
+  const query = new URLSearchParams()
+  if (params.statMonth) query.append('statMonth', params.statMonth)
+  if (params.unitCode) query.append('unitCode', params.unitCode)
+  if (params.deptId) query.append('deptId', params.deptId)
+  query.append('rankType', params.rankType || 'dept')
+  return '/stat/efficiency/export?' + query.toString()
+}
+
+export const calculateEfficiency = (data: EfficiencyRankQueryDTO) => {
+  return request<Result<boolean>>({
+    url: '/stat/efficiency/calculate',
+    method: 'post',
+    data
   })
 }
