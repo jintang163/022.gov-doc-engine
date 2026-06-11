@@ -45,6 +45,9 @@ public class DatabaseInitializer implements CommandLineRunner {
             initDocSupervisionTable();
             initDocUrgeLogTable();
             initStatEfficiencyTable();
+            initDocAnalysisTable();
+            initReminderLogTable();
+            initRejectReasonTable();
 
             log.info("Database initialization completed successfully");
         } catch (Exception e) {
@@ -273,6 +276,33 @@ public class DatabaseInitializer implements CommandLineRunner {
             executeSqlFromResource("db/changelog/014_add_efficiency_table.sql");
         } else {
             log.info("Table stat_efficiency already exists, skipping creation");
+        }
+    }
+
+    private void initDocAnalysisTable() throws Exception {
+        if (!tableExists("doc_analysis")) {
+            log.info("Creating doc_analysis table...");
+            executeSqlFromResource("db/changelog/015_add_analysis_tables.sql");
+        } else {
+            log.info("Table doc_analysis already exists, skipping creation");
+        }
+    }
+
+    private void initReminderLogTable() throws Exception {
+        if (!tableExists("reminder_log")) {
+            log.info("Creating reminder_log table...");
+            executeSqlFromResource("db/changelog/015_add_analysis_tables.sql");
+        } else {
+            log.info("Table reminder_log already exists, skipping creation");
+        }
+    }
+
+    private void initRejectReasonTable() throws Exception {
+        if (!tableExists("reject_reason")) {
+            log.info("Creating reject_reason table...");
+            executeSqlFromResource("db/changelog/015_add_analysis_tables.sql");
+        } else {
+            log.info("Table reject_reason already exists, skipping creation");
         }
     }
 }
