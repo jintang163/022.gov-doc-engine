@@ -45,6 +45,11 @@
             <a-menu-item key="/incoming">收文登记</a-menu-item>
             <a-menu-item key="/handling">承办办理</a-menu-item>
           </a-sub-menu>
+          <a-sub-menu key="supervision">
+            <template #title>🔔 督办管理</template>
+            <a-menu-item key="/supervision">督办管理</a-menu-item>
+            <a-menu-item key="/my-supervisions">我的督办</a-menu-item>
+          </a-sub-menu>
           <a-sub-menu key="security">
             <template #title>🔒 权限与安全</template>
             <a-menu-item key="/security/permission">权限配置</a-menu-item>
@@ -92,6 +97,8 @@ watch(
       openKeys.value = ['archive']
     } else if (path.startsWith('/incoming') || path.startsWith('/handling')) {
       openKeys.value = ['incoming']
+    } else if (path.startsWith('/supervision') || path.startsWith('/my-supervisions')) {
+      openKeys.value = ['supervision']
     } else if (path.startsWith('/security')) {
       openKeys.value = ['security']
     } else if (path.startsWith('/stat')) {

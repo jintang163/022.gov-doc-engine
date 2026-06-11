@@ -17,9 +17,11 @@ import com.gov.doc.engine.enums.DocHandlingTypeEnum;
 import com.gov.doc.engine.enums.DocIncomingStatusEnum;
 import com.gov.doc.engine.mapper.DocHandlingMapper;
 import com.gov.doc.engine.mapper.DocIncomingMapper;
+import com.gov.doc.engine.mapper.DocUrgeLogMapper;
 import com.gov.doc.engine.service.DocHandlingService;
 import com.gov.doc.engine.vo.DocHandlingVO;
 import com.gov.doc.engine.vo.DocIncomingVO;
+import com.gov.doc.engine.vo.DocUrgeLogVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,9 @@ public class DocHandlingServiceImpl extends ServiceImpl<DocHandlingMapper, DocHa
 
     @Autowired
     private DocIncomingMapper docIncomingMapper;
+
+    @Autowired
+    private DocUrgeLogMapper docUrgeLogMapper;
 
     @Override
     public PageResult<DocHandlingVO> pageList(DocHandlingQueryDTO queryDTO) {
@@ -235,6 +240,36 @@ public class DocHandlingServiceImpl extends ServiceImpl<DocHandlingMapper, DocHa
             vo.setIncoming(incomingVO);
         }
 
+        return vo;
+    }
+
+    @Override
+    public DocUrgeLogVO urgeHandling(Long handlingId, String urgeContent) {
+        DocHandling handling = docHandlingMapper.selectById(handlingId);
+        if (handling == null) {
+            throw new RuntimeException("处理记录不存在");
+        }
+        if (!DocHandlingStatusEnum.PENDING.getCode().equals(handling.getStatus())) {
+            throw new RuntimeException("当前处理状态不允许催办");
+        }
+
+        com.gov.doc.engine.entity.DocUrgeLog urgeLog = new com.gov.doc.engine.entity.DocUrgeLog();
+        urgeLog.setIncomingId(handling.getIncomingId());
+        urgeLog.setHandlingId(handlingId);
+        urgeLog.setUrgeNo(BizNoGenerator.generateUrgeNo());
+        urgeLog.setUrgeType("manual");
+        urgeLog.setUrgedUserId(handling.getTargetUserId());
+        urgeLog.setUrgedUserName(handling.getTargetUserName());
+        urgeLog.setUrgedDeptId(handling.getTargetDeptId());
+        urgeLog.setUrgedDeptName(handling.getTargetDeptName());
+        urgeLog.setUrgeContent(StringUtils.hasText(urgeContent) ? urgeContent : "请尽快处理该公文");
+        urgeLog.setStatus(com.gov.doc.engine.enums.UrgeStatusEnum.SENT.getCode());
+
+        docUrgeLogMapper.insert(urgeLog);
+
+        DocUrgeLogVO vo = new DocUrgeLogVO();
+        BeanUtils.copyProperties(urgeLog, vo);
+        vo.setStatusName(com.gov.doc.engine.enums.UrgeStatusEnum.getNameByCode(urgeLog.getStatus()));
         return vo;
     }
 }

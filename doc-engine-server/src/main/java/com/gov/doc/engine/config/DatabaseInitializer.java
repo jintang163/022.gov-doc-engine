@@ -42,6 +42,8 @@ public class DatabaseInitializer implements CommandLineRunner {
             initSysPostTable();
             initSysUserTable();
             initDeletedColumns();
+            initDocSupervisionTable();
+            initDocUrgeLogTable();
 
             log.info("Database initialization completed successfully");
         } catch (Exception e) {
@@ -244,5 +246,23 @@ public class DatabaseInitializer implements CommandLineRunner {
     private void initDeletedColumns() throws Exception {
         log.info("Fixing deleted columns for existing tables...");
         executeSqlFromResource("db/changelog/012_fix_deleted_columns.sql");
+    }
+
+    private void initDocSupervisionTable() throws Exception {
+        if (!tableExists("doc_supervision")) {
+            log.info("Creating doc_supervision table...");
+            executeSqlFromResource("db/changelog/013_add_supervision_tables.sql");
+        } else {
+            log.info("Table doc_supervision already exists, skipping creation");
+        }
+    }
+
+    private void initDocUrgeLogTable() throws Exception {
+        if (!tableExists("doc_urge_log")) {
+            log.info("Creating doc_urge_log table...");
+            executeSqlFromResource("db/changelog/013_add_supervision_tables.sql");
+        } else {
+            log.info("Table doc_urge_log already exists, skipping creation");
+        }
     }
 }

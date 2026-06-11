@@ -186,6 +186,30 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '处理详情' }
   },
   {
+    path: '/supervision',
+    name: 'SupervisionList',
+    component: () => import('@/views/supervision/List.vue'),
+    meta: { title: '督办管理' }
+  },
+  {
+    path: '/supervision/:id',
+    name: 'SupervisionDetail',
+    component: () => import('@/views/supervision/Detail.vue'),
+    meta: { title: '督办详情' }
+  },
+  {
+    path: '/supervision/my/:id',
+    name: 'MySupervisionDetail',
+    component: () => import('@/views/supervision/Detail.vue'),
+    meta: { title: '督办详情' }
+  },
+  {
+    path: '/my-supervisions',
+    name: 'MySupervisions',
+    component: () => import('@/views/supervision/MyList.vue'),
+    meta: { title: '我的督办' }
+  },
+  {
     path: '/security/permission',
     name: 'PermissionList',
     component: () => import('@/views/security/PermissionList.vue'),

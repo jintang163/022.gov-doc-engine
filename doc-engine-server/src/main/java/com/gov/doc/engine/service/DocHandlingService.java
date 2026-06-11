@@ -7,6 +7,7 @@ import com.gov.doc.engine.dto.DocHandlingFeedbackDTO;
 import com.gov.doc.engine.dto.DocHandlingQueryDTO;
 import com.gov.doc.engine.entity.DocHandling;
 import com.gov.doc.engine.vo.DocHandlingVO;
+import com.gov.doc.engine.vo.DocUrgeLogVO;
 
 public interface DocHandlingService extends IService<DocHandling> {
 
@@ -21,4 +22,6 @@ public interface DocHandlingService extends IService<DocHandling> {
     DocHandlingVO submitFeedback(DocHandlingFeedbackDTO dto);
 
     PageResult<DocHandlingVO> getMyHandlings(DocHandlingQueryDTO queryDTO);
+
+    DocUrgeLogVO urgeHandling(Long handlingId, String urgeContent);
 }

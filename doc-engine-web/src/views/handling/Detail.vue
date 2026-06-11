@@ -3,6 +3,15 @@
     <div class="page-header">
       <h2 class="page-title">处理详情</h2>
       <a-space>
+        <a-button
+          type="primary"
+          danger
+          @click="showUrgeModal"
+          v-if="detail && detail.handlingType === 'assign' && detail.status === 'pending'"
+        >
+          <template #icon><BellOutlined /></template>
+          催办
+        </a-button>
         <a-button @click="handleBack">
           <template #icon><ArrowLeftOutlined /></template>
           返回
@@ -37,6 +46,36 @@
             </a-descriptions-item>
           </a-descriptions>
           <a-skeleton v-else active :paragraph="{ rows: 5 }" />
+        </a-card>
+
+        <a-card title="催办记录" :bordered="false">
+          <a-timeline v-if="urgeLogs.length > 0">
+            <a-timeline-item
+              v-for="log in urgeLogs"
+              :key="log.id"
+              :color="log.status === 'acknowledged' ? 'green' : 'blue'"
+            >
+              <div class="urge-item">
+                <div class="urge-header">
+                  <span class="urge-type">
+                    {{ log.urgeType === 'system' ? '系统催办' : '人工催办' }}
+                  </span>
+                  <a-tag :color="log.status === 'acknowledged' ? 'success' : 'processing'">
+                    {{ log.statusName }}
+                  </a-tag>
+                  <span class="urge-time">{{ log.createTime }}</span>
+                </div>
+                <div class="urge-content">{{ log.urgeContent }}</div>
+                <div class="urge-footer">
+                  被催办人：{{ log.urgedUserName }}（{{ log.urgedDeptName }}）
+                  <template v-if="log.acknowledgeTime">
+                    ，确认时间：{{ log.acknowledgeTime }}
+                  </template>
+                </div>
+              </div>
+            </a-timeline-item>
+          </a-timeline>
+          <a-empty v-else description="暂无催办记录" />
         </a-card>
       </a-col>
 
@@ -95,6 +134,24 @@
         </a-card>
       </a-col>
     </a-row>
+
+    <a-modal
+      v-model:open="urgeModalVisible"
+      title="发送催办"
+      :confirm-loading="urging"
+      @ok="handleUrgeSubmit"
+      @cancel="urgeModalVisible = false"
+    >
+      <a-form layout="vertical">
+        <a-form-item label="催办内容">
+          <a-textarea
+            v-model:value="urgeForm.urgeContent"
+            :rows="4"
+            placeholder="请输入催办内容"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -102,9 +159,11 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { ArrowLeftOutlined, SendOutlined } from '@ant-design/icons-vue'
+import { ArrowLeftOutlined, SendOutlined, BellOutlined } from '@ant-design/icons-vue'
 import { getHandlingDetail, submitFeedback } from '@/api/incoming'
+import { urgeHandling, getUrgeLogsByHandling } from '@/api/supervision'
 import type { DocHandlingVO, DocHandlingFeedbackDTO } from '@/types/incoming'
+import type { DocUrgeLogVO } from '@/types/supervision'
 import { handlingStatusOptions } from '@/types/incoming'
 
 const route = useRoute()
@@ -112,10 +171,17 @@ const router = useRouter()
 
 const detail = ref<DocHandlingVO | null>(null)
 const submitting = ref(false)
+const urgeLogs = ref<DocUrgeLogVO[]>([])
+const urgeModalVisible = ref(false)
+const urging = ref(false)
 
 const feedbackForm = reactive<DocHandlingFeedbackDTO>({
   handlingId: 0,
   feedbackContent: undefined
+})
+
+const urgeForm = reactive({
+  urgeContent: '请尽快处理该公文'
 })
 
 const getStatusColor = (status: string) => {
@@ -133,8 +199,37 @@ const loadDetail = async () => {
   try {
     detail.value = await getHandlingDetail(id)
     feedbackForm.handlingId = id
+    loadUrgeLogs(id)
   } catch (error) {
     message.error('加载处理详情失败')
+  }
+}
+
+const loadUrgeLogs = async (handlingId: number) => {
+  try {
+    urgeLogs.value = await getUrgeLogsByHandling(handlingId)
+  } catch (error) {
+    console.error('加载催办记录失败', error)
+  }
+}
+
+const showUrgeModal = () => {
+  urgeForm.urgeContent = '请尽快处理该公文'
+  urgeModalVisible.value = true
+}
+
+const handleUrgeSubmit = async () => {
+  const id = Number(route.params.id)
+  urging.value = true
+  try {
+    await urgeHandling(id, urgeForm.urgeContent)
+    message.success('催办发送成功')
+    urgeModalVisible.value = false
+    loadUrgeLogs(id)
+  } catch (error) {
+    message.error('催办发送失败')
+  } finally {
+    urging.value = false
   }
 }
 
@@ -186,6 +281,38 @@ onMounted(() => {
     font-size: 20px;
     font-weight: 600;
     color: #262626;
+  }
+}
+
+.urge-item {
+  padding: 4px 0;
+
+  .urge-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+
+    .urge-type {
+      font-weight: 500;
+      color: #1890ff;
+    }
+
+    .urge-time {
+      margin-left: auto;
+      color: #8c8c8c;
+      font-size: 12px;
+    }
+  }
+
+  .urge-content {
+    color: #595959;
+    margin-bottom: 6px;
+  }
+
+  .urge-footer {
+    color: #8c8c8c;
+    font-size: 12px;
   }
 }
 </style>
