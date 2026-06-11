@@ -161,7 +161,7 @@ import type { StatEfficiencyVO } from '@/types/stat'
 import {
   getDeptEfficiencyRank,
   getPersonEfficiencyRank,
-  getEfficiencyExportUrl,
+  exportEfficiencyRank,
   calculateEfficiency
 } from '@/api/stat'
 import dayjs from 'dayjs'
@@ -342,26 +342,27 @@ async function handleRecalc() {
   }
 }
 
-function handleExport() {
-  if (!currentList.value.length) {
-    message.warning('没有可导出的数据')
-    return
-  }
+async function handleExport() {
   exporting.value = true
   try {
-    const url = getEfficiencyExportUrl({
+    const blob = await exportEfficiencyRank({
       statMonth: queryForm.statMonth,
       unitCode: queryForm.unitCode,
       deptId: queryForm.deptId,
       rankType: queryForm.rankType
     })
+    const fileName = (queryForm.rankType === 'person' ? '个人' : '部门') + '效能排行_' + (queryForm.statMonth || '本月') + '.xlsx'
+    const url = window.URL.createObjectURL(new Blob([blob as any]))
     const a = document.createElement('a')
-    a.href = import.meta.env.VITE_API_BASE_URL + url
-    a.target = '_blank'
+    a.href = url
+    a.download = fileName
     a.click()
-    message.success('已开始导出')
+    window.URL.revokeObjectURL(url)
+    message.success('导出成功')
+  } catch (e: any) {
+    message.error(e.message || '导出失败')
   } finally {
-    setTimeout(() => (exporting.value = false), 1000)
+    exporting.value = false
   }
 }
 

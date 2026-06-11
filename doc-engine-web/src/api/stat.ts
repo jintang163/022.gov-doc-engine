@@ -122,13 +122,13 @@ export const getPersonEfficiencyRank = (params?: EfficiencyRankQueryDTO) => {
   })
 }
 
-export const getEfficiencyExportUrl = (params: EfficiencyRankQueryDTO & { rankType?: 'dept' | 'person' }) => {
-  const query = new URLSearchParams()
-  if (params.statMonth) query.append('statMonth', params.statMonth)
-  if (params.unitCode) query.append('unitCode', params.unitCode)
-  if (params.deptId) query.append('deptId', params.deptId)
-  query.append('rankType', params.rankType || 'dept')
-  return '/stat/efficiency/export?' + query.toString()
+export const exportEfficiencyRank = (params: EfficiencyRankQueryDTO & { rankType?: 'dept' | 'person' }) => {
+  return request<Blob>({
+    url: '/stat/efficiency/export',
+    method: 'get',
+    params,
+    responseType: 'blob'
+  })
 }
 
 export const calculateEfficiency = (data: EfficiencyRankQueryDTO) => {

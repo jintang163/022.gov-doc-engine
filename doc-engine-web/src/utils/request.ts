@@ -22,6 +22,9 @@ service.interceptors.request.use(
 
 service.interceptors.response.use(
   (response: AxiosResponse<Result | any>) => {
+    if (response.config.responseType === 'blob') {
+      return response.data as any
+    }
     const res = response.data
     
     if (typeof res.errno !== 'undefined') {

@@ -1223,10 +1223,10 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
         String endStr = ym.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:59";
 
         String sql = "SELECT " +
-                "  h.operator_dept_id as target_id, " +
-                "  h.operator_dept_name as target_name, " +
-                "  d.unit_code as unit_code, " +
-                "  d.unit_name as unit_name, " +
+                "  d.id as target_id, " +
+                "  d.dept_name as target_name, " +
+                "  u.unit_code as unit_code, " +
+                "  u.unit_name as unit_name, " +
                 "  COUNT(h.id) as total_task, " +
                 "  SUM(CASE WHEN h.leave_time IS NOT NULL THEN 1 ELSE 0 END) as completed_task, " +
                 "  SUM(CASE WHEN h.duration IS NOT NULL AND h.duration > (5 * 24 * 60 * 60) THEN 1 " +
@@ -1234,11 +1234,13 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
                 "      ELSE 0 END) as overdue_task, " +
                 "  AVG(CASE WHEN h.duration IS NOT NULL THEN h.duration ELSE NULL END) as avg_duration " +
                 "FROM wf_process_history h " +
-                "LEFT JOIN wf_process_instance pi ON h.process_instance_id = pi.id AND pi.deleted = 0 " +
-                "LEFT JOIN doc_document d ON pi.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                "INNER JOIN sys_user su ON h.operator_id = su.user_code AND su.deleted = 0 " +
+                "LEFT JOIN sys_dept d ON su.dept_id = d.id AND d.deleted = 0 " +
+                "LEFT JOIN sys_unit u ON d.unit_id = u.id AND u.deleted = 0 " +
                 "WHERE h.deleted = 0 AND h.node_type = 'userTask' AND h.enter_time BETWEEN ? AND ? " +
-                "AND h.operator_dept_id IS NOT NULL " +
-                "GROUP BY h.operator_dept_id, h.operator_dept_name, d.unit_code, d.unit_name";
+                "AND h.operator_id IS NOT NULL AND h.operator_id != '' " +
+                "AND su.dept_id IS NOT NULL " +
+                "GROUP BY d.id, d.dept_name, u.unit_code, u.unit_name";
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, startStr, endStr);
         return rows.stream().map(row -> {
@@ -1271,12 +1273,13 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
         String endStr = ym.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:59";
 
         String sql = "SELECT " +
-                "  h.operator_id as target_id, " +
+                "  su.id as target_id, " +
                 "  su.user_name as target_name, " +
-                "  h.operator_dept_id as dept_id, " +
-                "  h.operator_dept_name as dept_name, " +
-                "  d.unit_code as unit_code, " +
-                "  d.unit_name as unit_name, " +
+                "  su.user_code as user_code, " +
+                "  d.id as dept_id, " +
+                "  d.dept_name as dept_name, " +
+                "  u.unit_code as unit_code, " +
+                "  u.unit_name as unit_name, " +
                 "  COUNT(h.id) as total_task, " +
                 "  SUM(CASE WHEN h.leave_time IS NOT NULL THEN 1 ELSE 0 END) as completed_task, " +
                 "  SUM(CASE WHEN h.duration IS NOT NULL AND h.duration > (5 * 24 * 60 * 60) THEN 1 " +
@@ -1284,21 +1287,23 @@ public class StatServiceImpl extends ServiceImpl<DocDocumentMapper, DocDocument>
                 "      ELSE 0 END) as overdue_task, " +
                 "  AVG(CASE WHEN h.duration IS NOT NULL THEN h.duration ELSE NULL END) as avg_duration " +
                 "FROM wf_process_history h " +
-                "LEFT JOIN sys_user su ON h.operator_id = su.user_code AND su.deleted = 0 " +
-                "LEFT JOIN wf_process_instance pi ON h.process_instance_id = pi.id AND pi.deleted = 0 " +
-                "LEFT JOIN doc_document d ON pi.business_key = CAST(d.id AS CHAR) AND d.deleted = 0 " +
+                "INNER JOIN sys_user su ON h.operator_id = su.user_code AND su.deleted = 0 " +
+                "LEFT JOIN sys_dept d ON su.dept_id = d.id AND d.deleted = 0 " +
+                "LEFT JOIN sys_unit u ON d.unit_id = u.id AND u.deleted = 0 " +
                 "WHERE h.deleted = 0 AND h.node_type = 'userTask' AND h.enter_time BETWEEN ? AND ? " +
                 "AND h.operator_id IS NOT NULL AND h.operator_id != '' " +
-                "GROUP BY h.operator_id, su.user_name, h.operator_dept_id, h.operator_dept_name, d.unit_code, d.unit_name";
+                "GROUP BY su.id, su.user_name, su.user_code, d.id, d.dept_name, u.unit_code, u.unit_name";
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, startStr, endStr);
         return rows.stream().map(row -> {
             StatEfficiency e = new StatEfficiency();
             e.setStatMonth(statMonth);
             e.setRankType(EfficiencyRankTypeEnum.PERSON.getCode());
-            e.setTargetId(row.get("target_id") == null ? "" : row.get("target_id").toString());
+            String targetId = row.get("target_id") == null ? "" : row.get("target_id").toString();
+            String userCode = row.get("user_code") == null ? "" : row.get("user_code").toString();
+            e.setTargetId(StrUtil.isNotBlank(targetId) ? targetId : userCode);
             String rawName = row.get("target_name") == null ? null : row.get("target_name").toString();
-            if (StrUtil.isBlank(rawName)) rawName = e.getTargetId();
+            if (StrUtil.isBlank(rawName)) rawName = userCode;
             e.setTargetName(rawName);
             e.setDeptId(row.get("dept_id") == null ? "" : row.get("dept_id").toString());
             e.setDeptName(row.get("dept_name") == null ? "未知部门" : row.get("dept_name").toString());
