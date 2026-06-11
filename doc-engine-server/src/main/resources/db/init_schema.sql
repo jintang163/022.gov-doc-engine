@@ -18,6 +18,9 @@ SOURCE db/changelog/011_add_org_tables.sql;
 -- 012: 修复deleted字段
 SOURCE db/changelog/012_fix_deleted_columns.sql;
 
+-- 013: 新增督办管理表
+SOURCE db/changelog/013_add_supervision_tables.sql;
+
 -- =====================================================================
 -- 数据初始化完成
 -- =====================================================================

@@ -38,6 +38,14 @@ public class BizNoGenerator {
         return generate("AL");
     }
 
+    public static String generateSupervisionNo() {
+        return generate("SP");
+    }
+
+    public static String generateUrgeNo() {
+        return generate("UG");
+    }
+
     private static synchronized String generate(String prefix) {
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         if (!datePart.equals(lastDatePart)) {
