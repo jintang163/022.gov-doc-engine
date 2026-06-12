@@ -176,6 +176,66 @@ export const rankLevelOptions = [
   { label: '达标', value: '达标', color: '#52c41a' }
 ]
 
+export interface SupervisionSuggestionQueryDTO {
+  keyword?: string
+  suggestionType?: string
+  riskLevel?: string
+  responsibleDeptId?: string
+  pageNum?: number
+  pageSize?: number
+}
+
+export interface SupervisionSuggestionVO {
+  id: number
+  suggestionNo: string
+  incomingId: number
+  handlingId?: number
+  sourceDocNumber: string
+  docTitle: string
+  docType?: string
+  suggestionType: string
+  suggestionTypeName: string
+  riskLevel: string
+  riskLevelName: string
+  predictedOverdueDays: number
+  currentNodeName: string
+  currentPostName?: string
+  responsibleUserId?: string
+  responsibleUserName?: string
+  responsibleDeptId?: string
+  responsibleDeptName?: string
+  suggestedUrgeType: string
+  suggestedUrgeTypeName: string
+  suggestedContent?: string
+  deadline?: string
+  remainingDays: number
+  urgeCount: number
+  status: string
+  statusName: string
+  generateTime?: string
+  createTime: string
+}
+
+export const supervisionSuggestionTypeOptions = [
+  { label: '超时预警', value: 'timeout_warning', color: 'red' },
+  { label: '催办预警', value: 'urge_warning', color: 'orange' },
+  { label: '停滞预警', value: 'stagnation_warning', color: 'gold' },
+  { label: '高频退回', value: 'rejection_warning', color: 'purple' }
+]
+
+export const supervisionRiskLevelOptions = [
+  { label: '高风险', value: 'high', color: 'red' },
+  { label: '中风险', value: 'medium', color: 'orange' },
+  { label: '低风险', value: 'low', color: 'blue' }
+]
+
+export const supervisionSuggestionStatusOptions = [
+  { label: '待处理', value: 'pending', color: 'warning' },
+  { label: '已督办', value: 'supervised', color: 'processing' },
+  { label: '已忽略', value: 'ignored', color: 'default' },
+  { label: '已办结', value: 'resolved', color: 'success' }
+]
+
 export const rankTypeOptions = [
   { label: '部门排名', value: 'dept' },
   { label: '个人排名', value: '个人排名' }

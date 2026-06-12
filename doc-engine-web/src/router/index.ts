@@ -274,6 +274,12 @@ const routes: RouteRecordRaw[] = [
     name: 'StatEfficiency',
     component: () => import('@/views/stat/EfficiencyRanking.vue'),
     meta: { title: '效能排行与报表' }
+  },
+  {
+    path: '/stat/supervision-suggestion',
+    name: 'StatSupervisionSuggestion',
+    component: () => import('@/views/stat/SupervisionSuggestion.vue'),
+    meta: { title: '督办建议' }
   }
 ]
 

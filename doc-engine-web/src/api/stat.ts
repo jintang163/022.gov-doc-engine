@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { StatOverviewVO, StatDocTypeVO, StatDocStatusVO, StatProcessVO, StatTrendVO, StatUnitVO, StatQueryDTO, StatDeptDraftVO, StatNodeDwellVO, StatCountersignCycleVO, StatTimelinessTrendVO, StatRejectionOverviewVO, StatRejectionWordVO, StatRejectionReasonVO, StatEfficiencyVO, EfficiencyRankQueryDTO, PageVO } from '@/types/stat'
+import type { StatOverviewVO, StatDocTypeVO, StatDocStatusVO, StatProcessVO, StatTrendVO, StatUnitVO, StatQueryDTO, StatDeptDraftVO, StatNodeDwellVO, StatCountersignCycleVO, StatTimelinessTrendVO, StatRejectionOverviewVO, StatRejectionWordVO, StatRejectionReasonVO, StatEfficiencyVO, EfficiencyRankQueryDTO, PageVO, SupervisionSuggestionVO, SupervisionSuggestionQueryDTO } from '@/types/stat'
 import type { Result } from '@/types/template'
 
 export const getStatOverview = (params?: StatQueryDTO) => {
@@ -136,5 +136,36 @@ export const calculateEfficiency = (data: EfficiencyRankQueryDTO) => {
     url: '/stat/efficiency/calculate',
     method: 'post',
     data
+  })
+}
+
+export const getSupervisionSuggestionPage = (params?: SupervisionSuggestionQueryDTO) => {
+  return request<Result<PageVO<SupervisionSuggestionVO>>>({
+    url: '/stat/supervision-suggestion/page',
+    method: 'get',
+    params
+  })
+}
+
+export const refreshSupervisionSuggestions = () => {
+  return request<Result<number>>({
+    url: '/stat/supervision-suggestion/refresh',
+    method: 'post'
+  })
+}
+
+export const handleSupervisionSuggestion = (id: number, action: 'supervise' | 'ignore', urgeContent?: string) => {
+  return request<Result<SupervisionSuggestionVO>>({
+    url: `/stat/supervision-suggestion/${id}/handle`,
+    method: 'post',
+    params: { action, urgeContent }
+  })
+}
+
+export const batchHandleSupervisionSuggestions = (ids: number[], action: 'supervise' | 'ignore') => {
+  return request<Result<number>>({
+    url: '/stat/supervision-suggestion/batch-handle',
+    method: 'post',
+    data: { ids, action }
   })
 }

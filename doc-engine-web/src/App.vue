@@ -63,6 +63,13 @@
             <a-menu-item key="/stat/rejection">退回热点分析</a-menu-item>
             <a-menu-item key="/stat/efficiency">效能排行与报表</a-menu-item>
           </a-sub-menu>
+          <a-sub-menu key="efficiency">
+            <template #title>📈 效能分析</template>
+            <a-menu-item key="/stat/timeliness">时效统计图表</a-menu-item>
+            <a-menu-item key="/stat/rejection">退回热点</a-menu-item>
+            <a-menu-item key="/stat/supervision-suggestion">督办建议</a-menu-item>
+            <a-menu-item key="/stat/efficiency">效能排行</a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </div>
     </a-layout-header>
@@ -103,7 +110,11 @@ watch(
     } else if (path.startsWith('/security')) {
       openKeys.value = ['security']
     } else if (path.startsWith('/stat')) {
-      openKeys.value = ['stat']
+      if (['/stat/timeliness', '/stat/rejection', '/stat/efficiency', '/stat/supervision-suggestion'].includes(path)) {
+        openKeys.value = ['efficiency']
+      } else {
+        openKeys.value = ['stat']
+      }
     }
   },
   { immediate: true }
