@@ -185,3 +185,13 @@ export const incomingUrgencyLevelOptions = [
   { label: '特急', value: '特急' },
   { label: '限时', value: '限时' }
 ]
+
+export interface DeptRecommendVO {
+  deptId: string
+  deptName: string
+  matchScore: number
+  matchScoreText: string
+  matchCount: number
+  lastHandleTime: string
+  matchReason: string
+}

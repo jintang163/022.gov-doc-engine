@@ -53,8 +53,41 @@
               />
             </a-form-item>
             <a-form-item label="承办部门">
-              <a-input v-model:value="opinionForm.targetDeptName" placeholder="请输入承办部门" />
+              <a-input v-model:value="opinionForm.targetDeptName" placeholder="请输入承办部门">
+                <template #addonAfter>
+                  <a-button type="link" @click="loadRecommendForOpinion" :loading="recommendLoading">
+                    <template #icon><BulbOutlined /></template>
+                    智能推荐
+                  </a-button>
+                </template>
+              </a-input>
             </a-form-item>
+            <div v-if="opinionRecommendList.length > 0" class="recommend-panel">
+              <div class="recommend-title">
+                <BulbOutlined />
+                <span>智能推荐部门（点击一键采纳）</span>
+              </div>
+              <div class="recommend-list">
+                <div
+                  v-for="item in opinionRecommendList"
+                  :key="item.deptId"
+                  class="recommend-item"
+                  @click="adoptRecommendForOpinion(item)"
+                >
+                  <div class="recommend-item-header">
+                    <span class="recommend-dept-name">{{ item.deptName }}</span>
+                    <a-tag :color="getScoreColor(item.matchScore)" size="small">
+                      {{ item.matchScoreText }} {{ (item.matchScore * 100).toFixed(0) }}%
+                    </a-tag>
+                  </div>
+                  <div class="recommend-item-info">
+                    <span>历史办理 {{ item.matchCount }} 次</span>
+                    <span v-if="item.lastHandleTime"> · 最近：{{ item.lastHandleTime }}</span>
+                  </div>
+                  <div class="recommend-item-reason">{{ item.matchReason }}</div>
+                </div>
+              </div>
+            </div>
             <a-form-item label="承办人">
               <a-input v-model:value="opinionForm.targetUserName" placeholder="请输入承办人" />
             </a-form-item>
@@ -102,8 +135,41 @@
         <a-card title="转承办" :bordered="false" v-if="detail?.status === 'proposed'">
           <a-form layout="vertical">
             <a-form-item label="承办部门">
-              <a-input v-model:value="assignForm.targetDeptName" placeholder="请输入承办部门" />
+              <a-input v-model:value="assignForm.targetDeptName" placeholder="请输入承办部门">
+                <template #addonAfter>
+                  <a-button type="link" @click="loadRecommendForAssign" :loading="recommendLoading">
+                    <template #icon><BulbOutlined /></template>
+                    智能推荐
+                  </a-button>
+                </template>
+              </a-input>
             </a-form-item>
+            <div v-if="assignRecommendList.length > 0" class="recommend-panel">
+              <div class="recommend-title">
+                <BulbOutlined />
+                <span>智能推荐部门（点击一键采纳）</span>
+              </div>
+              <div class="recommend-list">
+                <div
+                  v-for="item in assignRecommendList"
+                  :key="item.deptId"
+                  class="recommend-item"
+                  @click="adoptRecommendForAssign(item)"
+                >
+                  <div class="recommend-item-header">
+                    <span class="recommend-dept-name">{{ item.deptName }}</span>
+                    <a-tag :color="getScoreColor(item.matchScore)" size="small">
+                      {{ item.matchScoreText }} {{ (item.matchScore * 100).toFixed(0) }}%
+                    </a-tag>
+                  </div>
+                  <div class="recommend-item-info">
+                    <span>历史办理 {{ item.matchCount }} 次</span>
+                    <span v-if="item.lastHandleTime"> · 最近：{{ item.lastHandleTime }}</span>
+                  </div>
+                  <div class="recommend-item-reason">{{ item.matchReason }}</div>
+                </div>
+              </div>
+            </div>
             <a-form-item label="承办人">
               <a-input v-model:value="assignForm.targetUserName" placeholder="请输入承办人" />
             </a-form-item>
@@ -130,9 +196,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { ArrowLeftOutlined } from '@ant-design/icons-vue'
-import { getIncomingDetail, draftOpinion, assignHandling, getHandlingPage } from '@/api/incoming'
-import type { DocIncomingVO, DocHandlingDTO, DocHandlingVO } from '@/types/incoming'
+import { ArrowLeftOutlined, BulbOutlined } from '@ant-design/icons-vue'
+import { getIncomingDetail, draftOpinion, assignHandling, getHandlingPage, recommendDepts } from '@/api/incoming'
+import type { DocIncomingVO, DocHandlingDTO, DocHandlingVO, DeptRecommendVO } from '@/types/incoming'
 import { incomingStatusOptions } from '@/types/incoming'
 
 const route = useRoute()
@@ -142,6 +208,9 @@ const detail = ref<DocIncomingVO | null>(null)
 const handlingRecords = ref<DocHandlingVO[]>([])
 const submittingOpinion = ref(false)
 const submittingAssign = ref(false)
+const recommendLoading = ref(false)
+const opinionRecommendList = ref<DeptRecommendVO[]>([])
+const assignRecommendList = ref<DeptRecommendVO[]>([])
 
 const opinionForm = reactive<DocHandlingDTO>({
   incomingId: 0,
@@ -177,6 +246,13 @@ const getHandlingStatusColor = (status: string) => {
   return 'warning'
 }
 
+const getScoreColor = (score: number) => {
+  if (score >= 0.8) return 'success'
+  if (score >= 0.6) return 'blue'
+  if (score >= 0.4) return 'processing'
+  return 'default'
+}
+
 const loadDetail = async () => {
   const id = Number(route.params.id)
   if (!id) {
@@ -203,6 +279,60 @@ const loadHandlingRecords = async () => {
   } catch (error) {
     message.error('加载处理记录失败')
   }
+}
+
+const loadRecommendForOpinion = async () => {
+  if (!detail.value) return
+  recommendLoading.value = true
+  opinionRecommendList.value = []
+  try {
+    const list = await recommendDepts({
+      docTitle: detail.value.docTitle,
+      docType: detail.value.docType,
+      keyword: detail.value.keyword
+    })
+    opinionRecommendList.value = list
+    if (list.length === 0) {
+      message.info('暂无匹配的历史推荐部门')
+    }
+  } catch (error) {
+    message.error('加载推荐部门失败')
+  } finally {
+    recommendLoading.value = false
+  }
+}
+
+const loadRecommendForAssign = async () => {
+  if (!detail.value) return
+  recommendLoading.value = true
+  assignRecommendList.value = []
+  try {
+    const list = await recommendDepts({
+      docTitle: detail.value.docTitle,
+      docType: detail.value.docType,
+      keyword: detail.value.keyword
+    })
+    assignRecommendList.value = list
+    if (list.length === 0) {
+      message.info('暂无匹配的历史推荐部门')
+    }
+  } catch (error) {
+    message.error('加载推荐部门失败')
+  } finally {
+    recommendLoading.value = false
+  }
+}
+
+const adoptRecommendForOpinion = (item: DeptRecommendVO) => {
+  opinionForm.targetDeptName = item.deptName
+  opinionForm.targetDeptId = item.deptId
+  message.success(`已采纳：${item.deptName}`)
+}
+
+const adoptRecommendForAssign = (item: DeptRecommendVO) => {
+  assignForm.targetDeptName = item.deptName
+  assignForm.targetDeptId = item.deptId
+  message.success(`已采纳：${item.deptName}`)
 }
 
 const handleDraftOpinion = async () => {
@@ -310,6 +440,69 @@ onMounted(() => {
     color: #8c8c8c;
     font-size: 12px;
     margin-top: 4px;
+  }
+}
+
+.recommend-panel {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+
+  .recommend-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    color: #389e0d;
+    font-weight: 500;
+    font-size: 13px;
+  }
+
+  .recommend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .recommend-item {
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #52c41a;
+      box-shadow: 0 2px 8px rgba(82, 196, 26, 0.15);
+    }
+
+    .recommend-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+
+      .recommend-dept-name {
+        font-weight: 600;
+        color: #262626;
+        font-size: 14px;
+      }
+    }
+
+    .recommend-item-info {
+      color: #8c8c8c;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .recommend-item-reason {
+      color: #595959;
+      font-size: 12px;
+      line-height: 1.5;
+    }
   }
 }
 </style>

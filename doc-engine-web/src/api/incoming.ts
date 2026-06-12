@@ -7,7 +7,8 @@ import type {
   DocHandlingVO,
   DocHandlingDTO,
   DocHandlingFeedbackDTO,
-  DocHandlingQueryDTO
+  DocHandlingQueryDTO,
+  DeptRecommendVO
 } from '@/types/incoming'
 
 export const getIncomingPage = (params: DocIncomingQueryDTO) => {
@@ -83,6 +84,18 @@ export const submitFeedback = (data: DocHandlingFeedbackDTO) => {
 export const getMyHandlings = (params: DocHandlingQueryDTO) => {
   return request<PageResult<DocHandlingVO>>({
     url: '/doc/handling/my-handlings',
+    method: 'get',
+    params
+  })
+}
+
+export const recommendDepts = (params: {
+  docTitle?: string
+  docType?: string
+  keyword?: string
+}) => {
+  return request<DeptRecommendVO[]>({
+    url: '/doc/recommend/dept',
     method: 'get',
     params
   })
