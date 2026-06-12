@@ -38,6 +38,9 @@
         <itextpdf.version>5.5.13.3</itextpdf.version>
         <pdfbox.version>2.0.32</pdfbox.version>
         <gmssl.version>3.2.1</gmssl.version>
+        <camunda.version>7.18.0</camunda.version>
+        <poi.version>5.2.5</poi.version>
+        <jieba.version>1.0.2</jieba.version>
     </properties>
 
     <dependencyManagement>
@@ -90,6 +93,16 @@
                 <version>${pagehelper.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
@@ -108,6 +121,11 @@
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox</artifactId>
                 <version>${pdfbox.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.huaban</groupId>
+                <artifactId>jieba-analysis</artifactId>
+                <version>${jieba.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,0 +1,194 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.gov:doc-engine-server >----------------------
+[INFO] Building doc-engine-server 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:2.7.18:run (default-cli) > test-compile @ doc-engine-server >>>
+[WARNING] The artifact mysql:mysql-connector-java:jar:8.0.33 has been relocated to com.mysql:mysql-connector-j:jar:8.0.33: MySQL Connector/J artifacts moved to reverse-DNS compliant Maven 2+ coordinates.
+[INFO] 
+[INFO] --- resources:3.2.0:resources (default-resources) @ doc-engine-server ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] Copying 3 resources
+[INFO] Copying 14 resources
+[INFO] 
+[INFO] --- compiler:3.10.1:compile (default-compile) @ doc-engine-server ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 342 source files to D:\02.develop\01.workspace\01.java\2019.bc\ai\022.gov-doc-engine\doc-engine-server\target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[8,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[9,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[16,2] 找不到符号
+  符号: 类 Api
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocIntegrityController.java:[6,30] 找不到符号
+  符号:   类 DocIntegrityVerifyDTO
+  位置: 程序包 com.gov.doc.engine.dto
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/DocIntegrityService.java:[5,30] 找不到符号
+  符号:   类 DocIntegrityVerifyDTO
+  位置: 程序包 com.gov.doc.engine.dto
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocIntegrityController.java:[31,55] 找不到符号
+  符号:   类 DocIntegrityVerifyDTO
+  位置: 类 com.gov.doc.engine.controller.DocIntegrityController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/DocIntegrityService.java:[15,27] 找不到符号
+  符号:   类 DocIntegrityVerifyDTO
+  位置: 接口 com.gov.doc.engine.service.DocIntegrityService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[6,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[7,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[16,2] 找不到符号
+  符号: 类 Api
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocIntegrityServiceImpl.java:[7,30] 找不到符号
+  符号:   类 DocIntegrityVerifyDTO
+  位置: 程序包 com.gov.doc.engine.dto
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocIntegrityServiceImpl.java:[21,17] 找不到符号
+  符号:   类 HexFormat
+  位置: 程序包 java.util
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocIntegrityServiceImpl.java:[57,34] 找不到符号
+  符号:   类 DocIntegrityVerifyDTO
+  位置: 类 com.gov.doc.engine.service.impl.DocIntegrityServiceImpl
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[6,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[7,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[13,2] 找不到符号
+  符号: 类 Api
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[24,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[34,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[40,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[46,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[54,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[67,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[24,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[38,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[44,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[51,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[61,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[75,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[87,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[21,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusLogController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[27,6] 找不到符号
+  符号:   类 ApiOperation
+  位置: 类 com.gov.doc.engine.controller.DocStatusLogController
+[INFO] 31 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  29.207 s
+[INFO] Finished at: 2026-06-12T09:29:19+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.10.1:compile (default-compile) on project doc-engine-server: Compilation failure: Compilation failure: 
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[8,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[9,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[16,2] 找不到符号
+[ERROR]   符号: 类 Api
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocIntegrityController.java:[6,30] 找不到符号
+[ERROR]   符号:   类 DocIntegrityVerifyDTO
+[ERROR]   位置: 程序包 com.gov.doc.engine.dto
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/DocIntegrityService.java:[5,30] 找不到符号
+[ERROR]   符号:   类 DocIntegrityVerifyDTO
+[ERROR]   位置: 程序包 com.gov.doc.engine.dto
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocIntegrityController.java:[31,55] 找不到符号
+[ERROR]   符号:   类 DocIntegrityVerifyDTO
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocIntegrityController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/DocIntegrityService.java:[15,27] 找不到符号
+[ERROR]   符号:   类 DocIntegrityVerifyDTO
+[ERROR]   位置: 接口 com.gov.doc.engine.service.DocIntegrityService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[6,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[7,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[16,2] 找不到符号
+[ERROR]   符号: 类 Api
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocIntegrityServiceImpl.java:[7,30] 找不到符号
+[ERROR]   符号:   类 DocIntegrityVerifyDTO
+[ERROR]   位置: 程序包 com.gov.doc.engine.dto
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocIntegrityServiceImpl.java:[21,17] 找不到符号
+[ERROR]   符号:   类 HexFormat
+[ERROR]   位置: 程序包 java.util
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocIntegrityServiceImpl.java:[57,34] 找不到符号
+[ERROR]   符号:   类 DocIntegrityVerifyDTO
+[ERROR]   位置: 类 com.gov.doc.engine.service.impl.DocIntegrityServiceImpl
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[6,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[7,30] 程序包io.swagger.annotations不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[13,2] 找不到符号
+[ERROR]   符号: 类 Api
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[24,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[34,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[40,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[46,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[54,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocDistributionController.java:[67,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocDistributionController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[24,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[38,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[44,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[51,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[61,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[75,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusMachineController.java:[87,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusMachineController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[21,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusLogController
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocStatusLogController.java:[27,6] 找不到符号
+[ERROR]   符号:   类 ApiOperation
+[ERROR]   位置: 类 com.gov.doc.engine.controller.DocStatusLogController
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

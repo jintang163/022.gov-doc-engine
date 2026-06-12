@@ -1,0 +1,321 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.gov:doc-engine-server >----------------------
+[INFO] Building doc-engine-server 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] The artifact mysql:mysql-connector-java:jar:8.0.33 has been relocated to com.mysql:mysql-connector-j:jar:8.0.33: MySQL Connector/J artifacts moved to reverse-DNS compliant Maven 2+ coordinates.
+[INFO] 
+[INFO] --- resources:3.2.0:resources (default-resources) @ doc-engine-server ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] Copying 3 resources
+[INFO] Copying 14 resources
+[INFO] 
+[INFO] --- compiler:3.10.1:compile (default-compile) @ doc-engine-server ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 343 source files to D:\02.develop\01.workspace\01.java\2019.bc\ai\022.gov-doc-engine\doc-engine-server\target\classes
+[INFO] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/util/PdfSignatureUtil.java: D:\02.develop\01.workspace\01.java\2019.bc\ai\022.gov-doc-engine\doc-engine-server\src\main\java\com\gov\doc\engine\util\PdfSignatureUtil.java使用或覆盖了已过时的 API。
+[INFO] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/util/PdfSignatureUtil.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocDistributionServiceImpl.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocDistributionServiceImpl.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 某些消息已经过简化; 请使用 -Xdiags:verbose 重新编译以获得完整输出
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocTemplateServiceImpl.java:[352,21] 已在方法 createDocumentFromTemplate(com.gov.doc.engine.dto.DocDocumentCreateDTO)中定义了变量 currentUser
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocTemplateServiceImpl.java:[353,72] 不兼容的类型: 条件表达式中的类型错误
+    java.lang.Long无法转换为java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocTemplateServiceImpl.java:[354,64] 找不到符号
+  符号:   方法 getUserName()
+  位置: 类型为com.gov.doc.engine.common.UserContext的变量 currentUser
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/config/CamundaConfig.java:[24,32] 不兼容的类型: java.lang.String无法转换为org.camunda.bpm.engine.impl.history.HistoryLevel
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/config/CamundaConfig.java:[26,15] 找不到符号
+  符号:   方法 setTablePrefix(java.lang.String)
+  位置: 类型为org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration的变量 config
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessDefinitionServiceImpl.java:[81,16] 无法推断com.gov.doc.engine.common.PageResult<>的类型参数
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessDefinitionServiceImpl.java:[468,52] 不兼容的类型: 推断类型不符合等式约束条件
+    推断: java.util.Map<java.lang.String,java.lang.Integer>
+    等式约束条件: java.util.Map<java.lang.String,java.lang.Integer>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessDefinitionServiceImpl.java:[511,50] 不兼容的类型: 推断类型不符合等式约束条件
+    推断: java.util.Map<java.lang.String,java.lang.Object>
+    等式约束条件: java.util.Map<java.lang.String,java.lang.Object>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessDefinitionServiceImpl.java:[520,46] 不兼容的类型: 推断类型不符合等式约束条件
+    推断: java.util.Map<java.lang.String,java.lang.Integer>
+    等式约束条件: java.util.Map<java.lang.String,java.lang.Integer>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocPermissionController.java:[66,30] 不兼容的类型: 推论变量T具有不兼容的限制范围
+    等式约束条件: java.lang.Void
+    下限: java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfCountersignServiceImpl.java:[210,28] 找不到符号
+  符号:   方法 setDuration(long)
+  位置: 类型为com.gov.doc.engine.entity.WfCountersign的变量 countersign
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfCountersignServiceImpl.java:[248,44] 不兼容的类型: 推断类型不符合等式约束条件
+    推断: java.util.Map<java.lang.String,java.lang.Object>
+    等式约束条件: java.util.Map<java.lang.String,java.lang.Object>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfCountersignServiceImpl.java:[253,24] 找不到符号
+  符号:   方法 getDuration()
+  位置: 类型为com.gov.doc.engine.entity.WfCountersign的变量 countersign
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfCountersignServiceImpl.java:[254,58] 找不到符号
+  符号:   方法 getDuration()
+  位置: 类型为com.gov.doc.engine.entity.WfCountersign的变量 countersign
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/util/PdfSignatureUtil.java:[66,26] 对于signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.PrivateKeySignature,java.security.cert.Certificate[],<nulltype>,<nulltype>,<nulltype>,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard), 找不到合适的方法
+    方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard)不适用
+      (实际参数列表和形式参数列表长度不同)
+    方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard,com.itextpdf.text.pdf.security.SignaturePolicyInfo)不适用
+      (实际参数列表和形式参数列表长度不同)
+    方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard,org.bouncycastle.asn1.esf.SignaturePolicyIdentifier)不适用
+      (实际参数列表和形式参数列表长度不同)
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/util/PdfSignatureUtil.java:[114,26] 对于signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.PrivateKeySignature,java.security.cert.Certificate[],<nulltype>,<nulltype>,<nulltype>,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard), 找不到合适的方法
+    方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard)不适用
+      (实际参数列表和形式参数列表长度不同)
+    方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard,com.itextpdf.text.pdf.security.SignaturePolicyInfo)不适用
+      (实际参数列表和形式参数列表长度不同)
+    方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard,org.bouncycastle.asn1.esf.SignaturePolicyIdentifier)不适用
+      (实际参数列表和形式参数列表长度不同)
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[25,37] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[26,35] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[27,36] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[28,43] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[29,47] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[30,52] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[31,50] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[32,44] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[33,50] 找不到符号
+  符号:   方法 of(java.lang.String,java.lang.String,java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[34,46] 找不到符号
+  符号:   方法 of(java.lang.String)
+  位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfTaskServiceImpl.java:[369,63] 找不到符号
+  符号:   方法 findCamundaTasksByProcessInstance(java.lang.String)
+  位置: 类型为com.gov.doc.engine.service.WfProcessEngineService的变量 processEngineService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfTaskServiceImpl.java:[378,49] 找不到符号
+  符号:   方法 findCamundaProcessInstance(java.lang.String)
+  位置: 类型为com.gov.doc.engine.service.WfProcessEngineService的变量 processEngineService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfTaskServiceImpl.java:[406,61] <匿名com.gov.doc.engine.service.impl.WfTaskServiceImpl$1>不是抽象的, 并且未覆盖org.camunda.bpm.engine.RuntimeService中的抽象方法createConditionEvaluation()
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfTaskServiceImpl.java:[467,37] 找不到符号
+  符号:   方法 deleteCamundaProcessInstance(java.lang.String,java.lang.String)
+  位置: 类型为com.gov.doc.engine.service.WfProcessEngineService的变量 processEngineService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DataExtractionServiceImpl.java:[97,46] 找不到符号
+  符号:   方法 of()
+  位置: 接口 java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DataExtractionServiceImpl.java:[345,39] 找不到符号
+  符号:   方法 of()
+  位置: 接口 java.util.List
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DataExtractionServiceImpl.java:[360,39] 找不到符号
+  符号:   方法 of()
+  位置: 接口 java.util.List
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DataExtractionServiceImpl.java:[375,39] 找不到符号
+  符号:   方法 of()
+  位置: 接口 java.util.List
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfApprovalOpinionServiceImpl.java:[57,46] 不兼容的类型: 推断类型不符合等式约束条件
+    推断: java.util.Map<java.lang.String,java.lang.Object>
+    等式约束条件: java.util.Map<java.lang.String,java.lang.Object>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSignatureServiceImpl.java:[338,62] 不兼容的类型: java.util.List<com.gov.doc.engine.vo.DocSignatureVO>无法转换为java.util.List<com.gov.doc.engine.entity.DocSignature>
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSignatureServiceImpl.java:[377,16] 无法推断com.gov.doc.engine.common.PageResult<>的类型参数
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSignatureServiceImpl.java:[576,11] 找不到符号
+  符号:   方法 setSealTypeName(java.lang.String)
+  位置: 类型为com.gov.doc.engine.vo.DocSignatureVO的变量 vo
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSealServiceImpl.java:[96,54] 不兼容的类型: java.lang.Long无法转换为java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSealServiceImpl.java:[100,54] 不兼容的类型: java.lang.Long无法转换为java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSealServiceImpl.java:[104,54] 不兼容的类型: java.lang.Long无法转换为java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocIntegrityServiceImpl.java:[69,45] 找不到符号
+  符号:   方法 getCurrentContent()
+  位置: 类型为com.gov.doc.engine.dto.DocIntegrityVerifyDTO的变量 dto
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[170,41] 找不到符号
+  符号:   方法 getStartUserId()
+  位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[171,43] 找不到符号
+  符号:   方法 getStartUserName()
+  位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[189,61] 找不到符号
+  符号:   方法 getStartUserId()
+  位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[190,63] 找不到符号
+  符号:   方法 getStartUserName()
+  位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[201,88] 找不到符号
+  符号:   方法 findCamundaTasksByProcessInstance(java.lang.String)
+  位置: 类型为com.gov.doc.engine.service.WfProcessEngineService的变量 processEngineService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[241,52] 程序包DocStatusEnum不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[244,60] 找不到符号
+  符号:   变量 DocStatusEnum
+  位置: 类 com.gov.doc.engine.service.impl.WfProcessInstanceServiceImpl
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[245,49] 找不到符号
+  符号:   方法 getStartUserId()
+  位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[246,51] 找不到符号
+  符号:   方法 getStartUserName()
+  位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[INFO] 51 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:47 min
+[INFO] Finished at: 2026-06-12T09:59:37+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.10.1:compile (default-compile) on project doc-engine-server: Compilation failure: Compilation failure: 
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocTemplateServiceImpl.java:[352,21] 已在方法 createDocumentFromTemplate(com.gov.doc.engine.dto.DocDocumentCreateDTO)中定义了变量 currentUser
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocTemplateServiceImpl.java:[353,72] 不兼容的类型: 条件表达式中的类型错误
+[ERROR]     java.lang.Long无法转换为java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocTemplateServiceImpl.java:[354,64] 找不到符号
+[ERROR]   符号:   方法 getUserName()
+[ERROR]   位置: 类型为com.gov.doc.engine.common.UserContext的变量 currentUser
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/config/CamundaConfig.java:[24,32] 不兼容的类型: java.lang.String无法转换为org.camunda.bpm.engine.impl.history.HistoryLevel
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/config/CamundaConfig.java:[26,15] 找不到符号
+[ERROR]   符号:   方法 setTablePrefix(java.lang.String)
+[ERROR]   位置: 类型为org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration的变量 config
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessDefinitionServiceImpl.java:[81,16] 无法推断com.gov.doc.engine.common.PageResult<>的类型参数
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessDefinitionServiceImpl.java:[468,52] 不兼容的类型: 推断类型不符合等式约束条件
+[ERROR]     推断: java.util.Map<java.lang.String,java.lang.Integer>
+[ERROR]     等式约束条件: java.util.Map<java.lang.String,java.lang.Integer>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessDefinitionServiceImpl.java:[511,50] 不兼容的类型: 推断类型不符合等式约束条件
+[ERROR]     推断: java.util.Map<java.lang.String,java.lang.Object>
+[ERROR]     等式约束条件: java.util.Map<java.lang.String,java.lang.Object>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessDefinitionServiceImpl.java:[520,46] 不兼容的类型: 推断类型不符合等式约束条件
+[ERROR]     推断: java.util.Map<java.lang.String,java.lang.Integer>
+[ERROR]     等式约束条件: java.util.Map<java.lang.String,java.lang.Integer>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/controller/DocPermissionController.java:[66,30] 不兼容的类型: 推论变量T具有不兼容的限制范围
+[ERROR]     等式约束条件: java.lang.Void
+[ERROR]     下限: java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfCountersignServiceImpl.java:[210,28] 找不到符号
+[ERROR]   符号:   方法 setDuration(long)
+[ERROR]   位置: 类型为com.gov.doc.engine.entity.WfCountersign的变量 countersign
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfCountersignServiceImpl.java:[248,44] 不兼容的类型: 推断类型不符合等式约束条件
+[ERROR]     推断: java.util.Map<java.lang.String,java.lang.Object>
+[ERROR]     等式约束条件: java.util.Map<java.lang.String,java.lang.Object>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfCountersignServiceImpl.java:[253,24] 找不到符号
+[ERROR]   符号:   方法 getDuration()
+[ERROR]   位置: 类型为com.gov.doc.engine.entity.WfCountersign的变量 countersign
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfCountersignServiceImpl.java:[254,58] 找不到符号
+[ERROR]   符号:   方法 getDuration()
+[ERROR]   位置: 类型为com.gov.doc.engine.entity.WfCountersign的变量 countersign
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/util/PdfSignatureUtil.java:[66,26] 对于signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.PrivateKeySignature,java.security.cert.Certificate[],<nulltype>,<nulltype>,<nulltype>,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard), 找不到合适的方法
+[ERROR]     方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard)不适用
+[ERROR]       (实际参数列表和形式参数列表长度不同)
+[ERROR]     方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard,com.itextpdf.text.pdf.security.SignaturePolicyInfo)不适用
+[ERROR]       (实际参数列表和形式参数列表长度不同)
+[ERROR]     方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard,org.bouncycastle.asn1.esf.SignaturePolicyIdentifier)不适用
+[ERROR]       (实际参数列表和形式参数列表长度不同)
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/util/PdfSignatureUtil.java:[114,26] 对于signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.PrivateKeySignature,java.security.cert.Certificate[],<nulltype>,<nulltype>,<nulltype>,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard), 找不到合适的方法
+[ERROR]     方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard)不适用
+[ERROR]       (实际参数列表和形式参数列表长度不同)
+[ERROR]     方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard,com.itextpdf.text.pdf.security.SignaturePolicyInfo)不适用
+[ERROR]       (实际参数列表和形式参数列表长度不同)
+[ERROR]     方法 com.itextpdf.text.pdf.security.MakeSignature.signDetached(com.itextpdf.text.pdf.PdfSignatureAppearance,com.itextpdf.text.pdf.security.ExternalDigest,com.itextpdf.text.pdf.security.ExternalSignature,java.security.cert.Certificate[],java.util.Collection<com.itextpdf.text.pdf.security.CrlClient>,com.itextpdf.text.pdf.security.OcspClient,com.itextpdf.text.pdf.security.TSAClient,int,com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard,org.bouncycastle.asn1.esf.SignaturePolicyIdentifier)不适用
+[ERROR]       (实际参数列表和形式参数列表长度不同)
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[25,37] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[26,35] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[27,36] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[28,43] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[29,47] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[30,52] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[31,50] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String,java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[32,44] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[33,50] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String,java.lang.String,java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/enums/DocStatusEnum.java:[34,46] 找不到符号
+[ERROR]   符号:   方法 of(java.lang.String)
+[ERROR]   位置: 接口 java.util.Set
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfTaskServiceImpl.java:[369,63] 找不到符号
+[ERROR]   符号:   方法 findCamundaTasksByProcessInstance(java.lang.String)
+[ERROR]   位置: 类型为com.gov.doc.engine.service.WfProcessEngineService的变量 processEngineService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfTaskServiceImpl.java:[378,49] 找不到符号
+[ERROR]   符号:   方法 findCamundaProcessInstance(java.lang.String)
+[ERROR]   位置: 类型为com.gov.doc.engine.service.WfProcessEngineService的变量 processEngineService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfTaskServiceImpl.java:[406,61] <匿名com.gov.doc.engine.service.impl.WfTaskServiceImpl$1>不是抽象的, 并且未覆盖org.camunda.bpm.engine.RuntimeService中的抽象方法createConditionEvaluation()
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfTaskServiceImpl.java:[467,37] 找不到符号
+[ERROR]   符号:   方法 deleteCamundaProcessInstance(java.lang.String,java.lang.String)
+[ERROR]   位置: 类型为com.gov.doc.engine.service.WfProcessEngineService的变量 processEngineService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DataExtractionServiceImpl.java:[97,46] 找不到符号
+[ERROR]   符号:   方法 of()
+[ERROR]   位置: 接口 java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DataExtractionServiceImpl.java:[345,39] 找不到符号
+[ERROR]   符号:   方法 of()
+[ERROR]   位置: 接口 java.util.List
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DataExtractionServiceImpl.java:[360,39] 找不到符号
+[ERROR]   符号:   方法 of()
+[ERROR]   位置: 接口 java.util.List
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DataExtractionServiceImpl.java:[375,39] 找不到符号
+[ERROR]   符号:   方法 of()
+[ERROR]   位置: 接口 java.util.List
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfApprovalOpinionServiceImpl.java:[57,46] 不兼容的类型: 推断类型不符合等式约束条件
+[ERROR]     推断: java.util.Map<java.lang.String,java.lang.Object>
+[ERROR]     等式约束条件: java.util.Map<java.lang.String,java.lang.Object>,java.util.Map
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSignatureServiceImpl.java:[338,62] 不兼容的类型: java.util.List<com.gov.doc.engine.vo.DocSignatureVO>无法转换为java.util.List<com.gov.doc.engine.entity.DocSignature>
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSignatureServiceImpl.java:[377,16] 无法推断com.gov.doc.engine.common.PageResult<>的类型参数
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSignatureServiceImpl.java:[576,11] 找不到符号
+[ERROR]   符号:   方法 setSealTypeName(java.lang.String)
+[ERROR]   位置: 类型为com.gov.doc.engine.vo.DocSignatureVO的变量 vo
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSealServiceImpl.java:[96,54] 不兼容的类型: java.lang.Long无法转换为java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSealServiceImpl.java:[100,54] 不兼容的类型: java.lang.Long无法转换为java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocSealServiceImpl.java:[104,54] 不兼容的类型: java.lang.Long无法转换为java.lang.String
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/DocIntegrityServiceImpl.java:[69,45] 找不到符号
+[ERROR]   符号:   方法 getCurrentContent()
+[ERROR]   位置: 类型为com.gov.doc.engine.dto.DocIntegrityVerifyDTO的变量 dto
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[170,41] 找不到符号
+[ERROR]   符号:   方法 getStartUserId()
+[ERROR]   位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[171,43] 找不到符号
+[ERROR]   符号:   方法 getStartUserName()
+[ERROR]   位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[189,61] 找不到符号
+[ERROR]   符号:   方法 getStartUserId()
+[ERROR]   位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[190,63] 找不到符号
+[ERROR]   符号:   方法 getStartUserName()
+[ERROR]   位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[201,88] 找不到符号
+[ERROR]   符号:   方法 findCamundaTasksByProcessInstance(java.lang.String)
+[ERROR]   位置: 类型为com.gov.doc.engine.service.WfProcessEngineService的变量 processEngineService
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[241,52] 程序包DocStatusEnum不存在
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[244,60] 找不到符号
+[ERROR]   符号:   变量 DocStatusEnum
+[ERROR]   位置: 类 com.gov.doc.engine.service.impl.WfProcessInstanceServiceImpl
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[245,49] 找不到符号
+[ERROR]   符号:   方法 getStartUserId()
+[ERROR]   位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] /D:/02.develop/01.workspace/01.java/2019.bc/ai/022.gov-doc-engine/doc-engine-server/src/main/java/com/gov/doc/engine/service/impl/WfProcessInstanceServiceImpl.java:[246,51] 找不到符号
+[ERROR]   符号:   方法 getStartUserName()
+[ERROR]   位置: 类型为com.gov.doc.engine.dto.WfProcessStartDTO的变量 startDTO
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
